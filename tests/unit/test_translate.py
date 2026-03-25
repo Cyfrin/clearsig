@@ -164,6 +164,7 @@ class TestTranslateSafe:
         signer_field = next(f for f in result.fields if f.label == "Execution signer")
         assert signer_field.value == "0x1234567890abcdef1234567890abcdef12345678"
 
-        # Check the nested calldata field contains hex
+        # Check the nested calldata field is recursively decoded
         data_field = next(f for f in result.fields if f.label == "Transaction")
-        assert data_field.value.startswith("0x")
+        assert "Approve" in data_field.value
+        assert "approve(address,uint256)" in data_field.value
