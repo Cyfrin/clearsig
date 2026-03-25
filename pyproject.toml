@@ -1,0 +1,39 @@
+[project]
+name = "erc7730-converter"
+version = "0.1.0"
+description = "Convert EVM calldata to human-readable output using ERC-7730 descriptors"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "eth-abi>=5.0.0",
+    "eth-utils>=5.0.0",
+    "eth-hash[pycryptodome]>=0.7.0",
+]
+
+[project.scripts]
+erc7730 = "erc7730.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["erc7730"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that make external API calls",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
