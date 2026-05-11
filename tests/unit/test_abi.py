@@ -158,15 +158,20 @@ class TestParseDisplaySignature:
         name, types = parse_display_signature(sig)
         assert name == "execTransaction"
         assert types == [
-            "address", "uint256", "bytes", "uint8",
-            "uint256", "uint256", "uint256", "address",
-            "address", "bytes",
+            "address",
+            "uint256",
+            "bytes",
+            "uint8",
+            "uint256",
+            "uint256",
+            "uint256",
+            "address",
+            "address",
+            "bytes",
         ]
 
     def test_array_params(self):
-        name, types = parse_display_signature(
-            "setup(address[] _owners, uint256 _threshold)"
-        )
+        name, types = parse_display_signature("setup(address[] _owners, uint256 _threshold)")
         assert name == "setup"
         assert types == ["address[]", "uint256"]
 

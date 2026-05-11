@@ -29,8 +29,14 @@ def format_fields(
 
         raw_value = _resolve_path(path, decoded_values, tx_context)
         formatted = _format_value(
-            raw_value, fmt, params, metadata, decoded_values, tx_context,
-            registry, chain_id,
+            raw_value,
+            fmt,
+            params,
+            metadata,
+            decoded_values,
+            tx_context,
+            registry,
+            chain_id,
         )
 
         result.append(TranslatedField(label=label, value=formatted, path=path, format=fmt))
@@ -96,7 +102,12 @@ def _format_value(
         return _format_unit(value, params)
     if fmt == "calldata":
         return _format_calldata(
-            value, params, decoded_values, tx_context, registry, chain_id,
+            value,
+            params,
+            decoded_values,
+            tx_context,
+            registry,
+            chain_id,
         )
     return _format_raw(value)
 
@@ -202,8 +213,12 @@ def _format_calldata(
 
     inner_tx_context = {"to": callee_address} if callee_address else None
     inner_fields = format_fields(
-        func.display, inner_values, func.metadata, inner_tx_context,
-        registry, chain_id,
+        func.display,
+        inner_values,
+        func.metadata,
+        inner_tx_context,
+        registry,
+        chain_id,
     )
 
     intent = func.display.get("intent", func.name)
@@ -220,7 +235,7 @@ def _resolve_metadata_ref(value: Any, metadata: dict) -> Any:
     if not isinstance(value, str) or not value.startswith("$.metadata."):
         return value
 
-    path = value[len("$.metadata."):]
+    path = value[len("$.metadata.") :]
     current: Any = metadata
     for part in path.split("."):
         if isinstance(current, dict):

@@ -22,9 +22,7 @@ def app() -> None:
     )
     translate_parser.add_argument("calldata", help="Hex-encoded calldata (with or without 0x)")
     translate_parser.add_argument("--to", required=True, help="Contract address being called")
-    translate_parser.add_argument(
-        "--chain-id", type=int, default=1, help="Chain ID (default: 1)"
-    )
+    translate_parser.add_argument("--chain-id", type=int, default=1, help="Chain ID (default: 1)")
     translate_parser.add_argument("--registry-path", help="Path to the ERC-7730 registry directory")
     translate_parser.add_argument("--from-address", help="Sender address for display context")
     translate_parser.add_argument(

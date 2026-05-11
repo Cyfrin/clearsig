@@ -202,9 +202,7 @@ class TestRegistryWithUrlAbi:
                     "formats": {
                         "doSomething(address target, uint256 amount)": {
                             "intent": "Do Something",
-                            "fields": [
-                                {"path": "amount", "label": "Amount", "format": "raw"}
-                            ],
+                            "fields": [{"path": "amount", "label": "Amount", "format": "raw"}],
                         }
                     }
                 },

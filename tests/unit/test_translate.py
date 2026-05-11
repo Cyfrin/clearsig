@@ -108,9 +108,16 @@ class TestTranslateSafe:
         selector = compute_selector(
             "execTransaction",
             [
-                "address", "uint256", "bytes", "uint8",
-                "uint256", "uint256", "uint256",
-                "address", "address", "bytes",
+                "address",
+                "uint256",
+                "bytes",
+                "uint8",
+                "uint256",
+                "uint256",
+                "uint256",
+                "address",
+                "address",
+                "bytes",
             ],
         )
         # Build a Safe execTransaction calling an ERC20 approve
@@ -123,9 +130,16 @@ class TestTranslateSafe:
 
         params = encode(
             [
-                "address", "uint256", "bytes", "uint8",
-                "uint256", "uint256", "uint256",
-                "address", "address", "bytes",
+                "address",
+                "uint256",
+                "bytes",
+                "uint8",
+                "uint256",
+                "uint256",
+                "uint256",
+                "address",
+                "address",
+                "bytes",
             ],
             [
                 "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",  # to (USDC)

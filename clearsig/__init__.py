@@ -69,9 +69,7 @@ def translate_with_registry(
     """Translate calldata using an already-loaded Registry instance."""
     data = hex_to_bytes(calldata)
     if len(data) < 4:
-        raise ValueError(
-            f"Calldata too short ({len(data)} bytes), need at least 4 for selector"
-        )
+        raise ValueError(f"Calldata too short ({len(data)} bytes), need at least 4 for selector")
 
     selector = data[:4]
     func = registry.lookup(selector, chain_id, to)
@@ -89,7 +87,12 @@ def translate_with_registry(
         tx_context["from"] = from_address
 
     fields = format_fields(
-        func.display, decoded_values, func.metadata, tx_context, registry, chain_id,
+        func.display,
+        decoded_values,
+        func.metadata,
+        tx_context,
+        registry,
+        chain_id,
     )
 
     return TranslatedCalldata(

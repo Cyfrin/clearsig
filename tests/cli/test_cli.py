@@ -58,17 +58,39 @@ def _aave_supply_calldata(asset: str, amount: int, on_behalf_of: str) -> bytes:
 
 
 def _safe_exec_calldata(
-    to: str, inner: bytes, operation: int = 0, from_addr: str | None = None,
+    to: str,
+    inner: bytes,
+    operation: int = 0,
+    from_addr: str | None = None,
 ) -> str:
-    sel = compute_selector("execTransaction", [
-        "address", "uint256", "bytes", "uint8",
-        "uint256", "uint256", "uint256",
-        "address", "address", "bytes",
-    ])
+    sel = compute_selector(
+        "execTransaction",
+        [
+            "address",
+            "uint256",
+            "bytes",
+            "uint8",
+            "uint256",
+            "uint256",
+            "uint256",
+            "address",
+            "address",
+            "bytes",
+        ],
+    )
     params = encode(
-        ["address", "uint256", "bytes", "uint8",
-         "uint256", "uint256", "uint256",
-         "address", "address", "bytes"],
+        [
+            "address",
+            "uint256",
+            "bytes",
+            "uint8",
+            "uint256",
+            "uint256",
+            "uint256",
+            "address",
+            "address",
+            "bytes",
+        ],
         [to, 0, inner, operation, 0, 0, 0, ZERO, ZERO, b""],
     )
     return "0x" + sel.hex() + params.hex()
@@ -96,10 +118,14 @@ class TestSafeApproveExample:
         calldata = _safe_exec_calldata(USDC, inner)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
         )
         assert "Intent: sign multisig operation" in result.stdout
         assert "Operation type: Call" in result.stdout
@@ -111,10 +137,14 @@ class TestSafeApproveExample:
         calldata = _safe_exec_calldata(USDC, inner)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
         )
         assert "Approve" in result.stdout
         assert "approve(address,uint256)" in result.stdout
@@ -126,10 +156,14 @@ class TestSafeApproveExample:
         calldata = _safe_exec_calldata(USDC, inner)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
             "--json",
         )
         data = json.loads(result.stdout)
@@ -147,10 +181,14 @@ class TestSafeAaveSupplyExample:
         calldata = _safe_exec_calldata(AAVE_POOL, inner)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
         )
         assert "Intent: sign multisig operation" in result.stdout
         assert "Supply (Aave)" in result.stdout
@@ -162,10 +200,14 @@ class TestSafeAaveSupplyExample:
         calldata = _safe_exec_calldata(AAVE_POOL, inner)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
             "--json",
         )
         data = json.loads(result.stdout)
@@ -181,9 +223,8 @@ class TestSafeMultiSendExample:
         approve_data = _erc20_approve_calldata(AAVE_POOL, 1_000_000)
         supply_data = _aave_supply_calldata(USDC, 1_000_000, USER)
 
-        packed = (
-            _pack_multisend_tx(0, USDC, 0, approve_data)
-            + _pack_multisend_tx(0, AAVE_POOL, 0, supply_data)
+        packed = _pack_multisend_tx(0, USDC, 0, approve_data) + _pack_multisend_tx(
+            0, AAVE_POOL, 0, supply_data
         )
         multisend_sel = compute_selector("multiSend", ["bytes"])
         multisend_calldata = multisend_sel + encode(["bytes"], [packed])
@@ -191,10 +232,14 @@ class TestSafeMultiSendExample:
         calldata = _safe_exec_calldata(MULTISEND, multisend_calldata, operation=1)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
         )
         assert "Intent: sign multisig operation" in result.stdout
         assert "Operation type: Delegate Call" in result.stdout
@@ -204,9 +249,8 @@ class TestSafeMultiSendExample:
         approve_data = _erc20_approve_calldata(AAVE_POOL, 1_000_000)
         supply_data = _aave_supply_calldata(USDC, 1_000_000, USER)
 
-        packed = (
-            _pack_multisend_tx(0, USDC, 0, approve_data)
-            + _pack_multisend_tx(0, AAVE_POOL, 0, supply_data)
+        packed = _pack_multisend_tx(0, USDC, 0, approve_data) + _pack_multisend_tx(
+            0, AAVE_POOL, 0, supply_data
         )
         multisend_sel = compute_selector("multiSend", ["bytes"])
         multisend_calldata = multisend_sel + encode(["bytes"], [packed])
@@ -214,10 +258,14 @@ class TestSafeMultiSendExample:
         calldata = _safe_exec_calldata(MULTISEND, multisend_calldata, operation=1)
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", SAFE_1_4_1,
-            "--registry-path", str(registry_available),
-            "--from-address", USER,
+            "translate",
+            calldata,
+            "--to",
+            SAFE_1_4_1,
+            "--registry-path",
+            str(registry_available),
+            "--from-address",
+            USER,
         )
         # The Transaction field should contain raw hex (multiSend not decoded)
         assert "Transaction: 0x8d80ff0a" in result.stdout
@@ -249,10 +297,14 @@ class TestUniswapUniversalRouterExample:
 
     def test_no_descriptor_found(self, registry_available: Path):
         result = _run_cli(
-            "translate", self.CALLDATA,
-            "--to", UNISWAP_ROUTER,
-            "--chain-id", "1",
-            "--registry-path", str(registry_available),
+            "translate",
+            self.CALLDATA,
+            "--to",
+            UNISWAP_ROUTER,
+            "--chain-id",
+            "1",
+            "--registry-path",
+            str(registry_available),
             expect_error=True,
         )
         assert result.returncode != 0
@@ -273,10 +325,14 @@ class TestBasicCLI:
         calldata = "0x" + sel.hex() + params.hex()
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", "0x0000000000000000000000000000000000000001",
-            "--chain-id", "1",
-            "--registry-path", str(registry_available),
+            "translate",
+            calldata,
+            "--to",
+            "0x0000000000000000000000000000000000000001",
+            "--chain-id",
+            "1",
+            "--registry-path",
+            str(registry_available),
         )
         assert "Intent: Send" in result.stdout
         assert "Function: transfer(address,uint256)" in result.stdout
@@ -290,10 +346,14 @@ class TestBasicCLI:
         calldata = "0x" + sel.hex() + params.hex()
 
         result = _run_cli(
-            "translate", calldata,
-            "--to", "0x0000000000000000000000000000000000000001",
-            "--chain-id", "1",
-            "--registry-path", str(registry_available),
+            "translate",
+            calldata,
+            "--to",
+            "0x0000000000000000000000000000000000000001",
+            "--chain-id",
+            "1",
+            "--registry-path",
+            str(registry_available),
             "--json",
         )
         data = json.loads(result.stdout)
@@ -309,9 +369,12 @@ class TestCLIErrors:
 
     def test_unknown_selector(self, registry_available: Path):
         result = _run_cli(
-            "translate", "0xdeadbeef",
-            "--to", "0x0000000000000000000000000000000000000001",
-            "--registry-path", str(registry_available),
+            "translate",
+            "0xdeadbeef",
+            "--to",
+            "0x0000000000000000000000000000000000000001",
+            "--registry-path",
+            str(registry_available),
             expect_error=True,
         )
         assert result.returncode != 0
@@ -319,9 +382,12 @@ class TestCLIErrors:
 
     def test_calldata_too_short(self, registry_available: Path):
         result = _run_cli(
-            "translate", "0xdead",
-            "--to", "0x0000000000000000000000000000000000000001",
-            "--registry-path", str(registry_available),
+            "translate",
+            "0xdead",
+            "--to",
+            "0x0000000000000000000000000000000000000001",
+            "--registry-path",
+            str(registry_available),
             expect_error=True,
         )
         assert result.returncode != 0

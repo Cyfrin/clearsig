@@ -19,9 +19,7 @@ from clearsig._models import FunctionFormat
 class Registry:
     """Index of ERC-7730 descriptors for fast lookup by address+selector."""
 
-    by_deployment: dict[tuple[int, str], list[FunctionFormat]] = field(
-        default_factory=dict
-    )
+    by_deployment: dict[tuple[int, str], list[FunctionFormat]] = field(default_factory=dict)
     by_selector: dict[bytes, list[FunctionFormat]] = field(default_factory=dict)
 
     @classmethod
@@ -136,9 +134,7 @@ class Registry:
             abi_entry = abi_map.get(sel)
             if abi_entry is None:
                 return None
-            return self._build_function_format(
-                sel, abi_entry, format_value, metadata, entity
-            )
+            return self._build_function_format(sel, abi_entry, format_value, metadata, entity)
 
         # Format keys are function signatures like "transfer(address,uint256)"
         # or "repay(address asset, uint256 amount, ...)"
@@ -161,8 +157,13 @@ class Registry:
 
         # No inline ABI: synthesize from the display key signature
         return self._build_function_format_from_signature(
-            display_sel, display_name, display_types, format_key,
-            format_value, metadata, entity,
+            display_sel,
+            display_name,
+            display_types,
+            format_key,
+            format_value,
+            metadata,
+            entity,
         )
 
     def _build_function_format(
