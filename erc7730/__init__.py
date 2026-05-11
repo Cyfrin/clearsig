@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from erc7730._abi import decode_calldata, hex_to_bytes
+from erc7730._descriptor_hash import descriptor_hash, descriptor_hash_hex
 from erc7730._formatter import format_fields
 from erc7730._models import TranslatedCalldata, TranslatedField
 from erc7730._registry import Registry
@@ -14,6 +15,8 @@ __all__ = [
     "Registry",
     "TranslatedCalldata",
     "TranslatedField",
+    "descriptor_hash",
+    "descriptor_hash_hex",
     "translate",
     "translate_with_registry",
     "update_registry",

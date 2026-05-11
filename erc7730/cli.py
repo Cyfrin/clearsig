@@ -3,8 +3,9 @@
 import argparse
 import json
 import sys
+from pathlib import Path
 
-from erc7730 import Registry, translate_with_registry, update_registry
+from erc7730 import Registry, descriptor_hash_hex, translate_with_registry, update_registry
 
 
 def app() -> None:
@@ -33,12 +34,25 @@ def app() -> None:
     # update subcommand
     subparsers.add_parser("update", help="Download or update the ERC-7730 registry")
 
+    # hash subcommand
+    hash_parser = subparsers.add_parser(
+        "hash",
+        help="Compute the ERC-8176 descriptor hash (keccak256 of RFC 8785 JCS-canonicalized JSON)",
+    )
+    hash_parser.add_argument(
+        "file",
+        type=Path,
+        help="Path to the ERC-7730 descriptor JSON file",
+    )
+
     args = parser.parse_args()
 
     if args.command == "translate":
         _handle_translate(args)
     elif args.command == "update":
         _handle_update()
+    elif args.command == "hash":
+        _handle_hash(args)
 
 
 def _handle_translate(args: argparse.Namespace) -> None:
@@ -83,3 +97,11 @@ def _print_human(result) -> None:
 def _handle_update() -> None:
     path = update_registry()
     print(f"Registry updated at {path}")
+
+
+def _handle_hash(args: argparse.Namespace) -> None:
+    try:
+        print(descriptor_hash_hex(args.file))
+    except (OSError, json.JSONDecodeError, TypeError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

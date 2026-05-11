@@ -8,6 +8,7 @@ dependencies = [
     "eth-abi>=5.0.0",
     "eth-utils>=5.0.0",
     "eth-hash[pycryptodome]>=0.7.0",
+    "rfc8785>=0.1.4",
 ]
 
 [project.scripts]
