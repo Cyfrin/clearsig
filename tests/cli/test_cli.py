@@ -1,6 +1,7 @@
 """CLI tests that invoke the clearsig command as a subprocess."""
 
 import json
+import re
 import struct
 import subprocess
 import sys
@@ -168,7 +169,8 @@ class TestSafeApproveExample:
         )
         data = json.loads(result.stdout)
         assert data["intent"] == "sign multisig operation"
-        assert data["entity"] == "Safe"
+        # Registry value drifts ("Safe" → "Safe{Wallet}"); accept any Safe-flavored entity.
+        assert "Safe" in data["entity"]
         tx_field = next(f for f in data["fields"] if f["label"] == "Transaction")
         assert "Approve" in tx_field["value"]
 
@@ -191,7 +193,8 @@ class TestSafeAaveSupplyExample:
             USER,
         )
         assert "Intent: sign multisig operation" in result.stdout
-        assert "Supply (Aave)" in result.stdout
+        # Registry value drifts ("Aave" → "Aave DAO"); accept any Aave-flavored entity.
+        assert re.search(r"Supply \(Aave[^)]*\)", result.stdout)
         assert "supply(address,uint256,address,uint16)" in result.stdout
         assert "Amount to supply: 1000000" in result.stdout
 
@@ -212,7 +215,7 @@ class TestSafeAaveSupplyExample:
         )
         data = json.loads(result.stdout)
         tx_field = next(f for f in data["fields"] if f["label"] == "Transaction")
-        assert "Supply (Aave)" in tx_field["value"]
+        assert re.search(r"Supply \(Aave[^)]*\)", tx_field["value"])
         assert "Amount to supply: 1000000" in tx_field["value"]
 
 
