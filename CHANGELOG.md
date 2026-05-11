@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-11
+
 ### Added
 
 - **`calldata-digest`** (alias `cd`) — ERC-8213 length-prefixed calldata digest:
@@ -83,5 +85,6 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `release-draft`, `check`, etc.), PyPI publish workflow with OIDC Trusted
   Publishing.
 
-[Unreleased]: https://github.com/Cyfrin/clearsig/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/Cyfrin/clearsig/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/Cyfrin/clearsig/compare/0.1.0...0.2.0
 [0.1.0]: https://github.com/Cyfrin/clearsig/releases/tag/0.1.0
