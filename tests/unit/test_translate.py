@@ -2,9 +2,9 @@
 
 from eth_abi import encode
 
-from erc7730 import translate_with_registry
-from erc7730._abi import compute_selector
-from erc7730._registry import Registry
+from clearsig import translate_with_registry
+from clearsig._abi import compute_selector
+from clearsig._registry import Registry
 
 
 class TestTranslateERC20:

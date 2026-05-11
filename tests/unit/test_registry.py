@@ -2,8 +2,8 @@ import json
 import tempfile
 from pathlib import Path
 
-from erc7730._abi import compute_selector
-from erc7730._registry import Registry
+from clearsig._abi import compute_selector
+from clearsig._registry import Registry
 
 
 def _make_registry(descriptors: dict[str, dict], ercs: dict[str, dict] | None = None) -> Registry:

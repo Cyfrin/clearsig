@@ -1,17 +1,17 @@
-"""CLI for erc7730 calldata translation."""
+"""CLI for clearsig calldata translation."""
 
 import argparse
 import json
 import sys
 from pathlib import Path
 
-from erc7730 import Registry, descriptor_hash_hex, translate_with_registry, update_registry
+from clearsig import Registry, descriptor_hash_hex, translate_with_registry, update_registry
 
 
 def app() -> None:
-    """Entry point for the erc7730 CLI."""
+    """Entry point for the clearsig CLI."""
     parser = argparse.ArgumentParser(
-        prog="erc7730",
+        prog="clearsig",
         description="Translate EVM calldata to human-readable output using ERC-7730 descriptors.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)

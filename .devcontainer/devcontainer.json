@@ -1,5 +1,5 @@
 {
-    "name": "erc7730 devcontainer",
+    "name": "clearsig devcontainer",
     "build": {
         "dockerfile": "Dockerfile"
     },

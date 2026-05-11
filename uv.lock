@@ -12,6 +12,33 @@ wheels = [
 ]
 
 [[package]]
+name = "clearsig"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "eth-abi" },
+    { name = "eth-hash", extra = ["pycryptodome"] },
+    { name = "eth-utils" },
+    { name = "rfc8785" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "eth-abi", specifier = ">=5.0.0" },
+    { name = "eth-hash", extras = ["pycryptodome"], specifier = ">=0.7.0" },
+    { name = "eth-utils", specifier = ">=5.0.0" },
+    { name = "rfc8785", specifier = ">=0.1.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -116,33 +143,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/46/b4/b7ce3d3cd20337becfec978ecfa6d0ef64884d0cf32d44edfed8700914b9/cytoolz-1.1.0-cp314-cp314t-win_amd64.whl", hash = "sha256:56e5afb69eb6e1b3ffc34716ee5f92ffbdb5cb003b3a5ca4d4b0fe700e217162", size = 1020835, upload-time = "2025-10-19T00:44:03.246Z" },
     { url = "https://files.pythonhosted.org/packages/2c/1f/0498009aa563a9c5d04f520aadc6e1c0942434d089d0b2f51ea986470f55/cytoolz-1.1.0-cp314-cp314t-win_arm64.whl", hash = "sha256:27b19b4a286b3ff52040efa42dbe403730aebe5fdfd2def704eb285e2125c63e", size = 927963, upload-time = "2025-10-19T00:44:04.85Z" },
 ]
-
-[[package]]
-name = "erc7730-converter"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "eth-abi" },
-    { name = "eth-hash", extra = ["pycryptodome"] },
-    { name = "eth-utils" },
-    { name = "rfc8785" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "eth-abi", specifier = ">=5.0.0" },
-    { name = "eth-hash", extras = ["pycryptodome"], specifier = ">=0.7.0" },
-    { name = "eth-utils", specifier = ">=5.0.0" },
-    { name = "rfc8785", specifier = ">=0.1.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "eth-abi"

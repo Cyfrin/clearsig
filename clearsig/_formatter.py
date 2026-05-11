@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from erc7730._models import TranslatedField
+from clearsig._models import TranslatedField
 
 if TYPE_CHECKING:
-    from erc7730._registry import Registry
+    from clearsig._registry import Registry
 
 
 def format_fields(
@@ -186,7 +186,7 @@ def _format_calldata(
             callee_address = "0x" + callee_address.hex()
 
     # Try to decode the nested calldata
-    from erc7730._abi import decode_calldata
+    from clearsig._abi import decode_calldata
 
     selector = value[:4]
     func = registry.lookup(selector, chain_id, callee_address)

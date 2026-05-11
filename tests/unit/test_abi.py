@@ -1,6 +1,6 @@
 from eth_abi import encode
 
-from erc7730._abi import (
+from clearsig._abi import (
     canonical_type,
     compute_selector,
     decode_calldata,

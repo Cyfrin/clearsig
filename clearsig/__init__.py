@@ -5,11 +5,11 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from erc7730._abi import decode_calldata, hex_to_bytes
-from erc7730._descriptor_hash import descriptor_hash, descriptor_hash_hex
-from erc7730._formatter import format_fields
-from erc7730._models import TranslatedCalldata, TranslatedField
-from erc7730._registry import Registry
+from clearsig._abi import decode_calldata, hex_to_bytes
+from clearsig._descriptor_hash import descriptor_hash, descriptor_hash_hex
+from clearsig._formatter import format_fields
+from clearsig._models import TranslatedCalldata, TranslatedField
+from clearsig._registry import Registry
 
 __all__ = [
     "Registry",
@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 REGISTRY_REPO = "https://github.com/LedgerHQ/clear-signing-erc7730-registry.git"
-DEFAULT_REGISTRY_DIR = Path.home() / ".erc7730" / "registry"
+DEFAULT_REGISTRY_DIR = Path.home() / ".clearsig" / "registry"
 
 _registry_cache: dict[str, Registry] = {}
 
@@ -43,7 +43,7 @@ def translate(
         to: The contract address being called.
         chain_id: The chain ID.
         registry_path: Path to the ERC-7730 registry directory. Falls back to
-            ERC7730_REGISTRY_PATH env var, then ~/.erc7730/registry (auto-downloaded).
+            ERC7730_REGISTRY_PATH env var, then ~/.clearsig/registry (auto-downloaded).
         from_address: Optional sender address (used for @.from display fields).
 
     Returns:
@@ -105,7 +105,7 @@ def update_registry(target: str | Path | None = None) -> Path:
     """Download or update the ERC-7730 registry from GitHub.
 
     Args:
-        target: Directory to store the registry. Defaults to ~/.erc7730/registry.
+        target: Directory to store the registry. Defaults to ~/.clearsig/registry.
 
     Returns:
         Path to the registry directory.
@@ -139,8 +139,8 @@ def _get_registry(registry_path: str | None) -> Registry:
             path = str(DEFAULT_REGISTRY_DIR)
         else:
             raise ValueError(
-                "No registry found. Run erc7730.update_registry() or "
-                "'erc7730 update' to download, or set ERC7730_REGISTRY_PATH."
+                "No registry found. Run clearsig.update_registry() or "
+                "'clearsig update' to download, or set ERC7730_REGISTRY_PATH."
             )
 
     resolved = os.path.abspath(path)

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from erc7730 import descriptor_hash, descriptor_hash_hex
+from clearsig import descriptor_hash, descriptor_hash_hex
 
 SAMPLE_DESCRIPTOR = {
     "context": {

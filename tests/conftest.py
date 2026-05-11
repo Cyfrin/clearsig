@@ -1,9 +1,8 @@
-import os
 from pathlib import Path
 
 import pytest
 
-from erc7730._registry import Registry
+from clearsig._registry import Registry
 
 REGISTRY_PATH = Path(__file__).parent.parent / "clear-signing-erc7730-registry"
 

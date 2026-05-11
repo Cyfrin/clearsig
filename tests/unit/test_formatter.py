@@ -1,4 +1,4 @@
-from erc7730._formatter import (
+from clearsig._formatter import (
     _format_address,
     _format_enum,
     _format_raw,

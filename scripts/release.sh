@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+#
+# Cut a GitHub release that matches pyproject.toml's version.
+#
+#   ./scripts/release.sh patch          # 0.1.0 → 0.1.1, tag v0.1.1, push, release
+#   ./scripts/release.sh minor          # 0.1.0 → 0.2.0
+#   ./scripts/release.sh major          # 0.1.0 → 1.0.0
+#   ./scripts/release.sh --draft minor  # cut release as a draft
+#
+# What it does:
+#   1. `uv version --bump <level>` bumps pyproject.toml.
+#   2. Reads the new version with `uv version --short`.
+#   3. Commits the bump as "release vX.Y.Z" and creates a matching `vX.Y.Z` tag.
+#   4. Pushes the commit AND the tag.
+#   5. `gh release create` opens a GitHub Release on that tag with
+#      auto-generated notes; the publish workflow picks it up from there.
+#
+# Pre-flight: working tree must be clean and on main.
+
+set -euo pipefail
+
+DRAFT=""
+LEVEL=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --draft) DRAFT="--draft" ;;
+    patch | minor | major) LEVEL="$arg" ;;
+    -h | --help)
+      awk '/^#!/ {next} /^#/ {sub(/^# ?/, ""); print; next} {exit}' "$0"
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $arg" >&2
+      exit 64
+      ;;
+  esac
+done
+
+if [ -z "$LEVEL" ]; then
+  echo "Usage: $0 <patch|minor|major> [--draft]" >&2
+  exit 64
+fi
+
+for cmd in uv gh git; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: '$cmd' is not installed." >&2
+    exit 127
+  fi
+done
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Error: working tree is dirty. Commit or stash first." >&2
+  git status -s
+  exit 1
+fi
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "main" ]; then
+  echo "Warning: not on main (current: $BRANCH). Continue? [y/N]"
+  read -r reply
+  [ "$reply" = "y" ] || [ "$reply" = "Y" ] || exit 1
+fi
+
+echo "→ bumping version ($LEVEL) in pyproject.toml"
+uv version --bump "$LEVEL" >/dev/null
+NEW_VERSION=$(uv version --short)
+NEW_TAG="v$NEW_VERSION"
+echo "  new version: $NEW_VERSION"
+
+echo "→ committing and tagging $NEW_TAG"
+git add pyproject.toml uv.lock
+git commit -m "release $NEW_TAG"
+git tag "$NEW_TAG"
+
+echo "→ pushing commit + tag"
+git push --follow-tags
+
+echo "→ cutting GitHub release for $NEW_TAG"
+gh release create "$NEW_TAG" --generate-notes $DRAFT
+
+echo ""
+echo "✓ Release $NEW_TAG cut. The publish workflow will pick it up."

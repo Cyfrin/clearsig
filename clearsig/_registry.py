@@ -4,15 +4,15 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from erc7730._abi import _split_params as _split_signature_params
-from erc7730._abi import (
+from clearsig._abi import _split_params as _split_signature_params
+from clearsig._abi import (
     canonical_signature,
     canonical_type,
     compute_selector,
     function_selector,
     parse_display_signature,
 )
-from erc7730._models import FunctionFormat
+from clearsig._models import FunctionFormat
 
 
 @dataclass
@@ -33,13 +33,13 @@ class Registry:
         if path:
             return cls.from_path(path)
 
-        default = Path.home() / ".erc7730" / "registry"
+        default = Path.home() / ".clearsig" / "registry"
         if default.exists():
             return cls.from_path(default)
 
         raise ValueError(
-            "No registry found. Run erc7730.update_registry() or "
-            "'erc7730 update' to download, or set ERC7730_REGISTRY_PATH."
+            "No registry found. Run clearsig.update_registry() or "
+            "'clearsig update' to download, or set ERC7730_REGISTRY_PATH."
         )
 
     @classmethod

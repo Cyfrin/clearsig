@@ -1,4 +1,4 @@
-"""CLI tests that invoke the erc7730 command as a subprocess."""
+"""CLI tests that invoke the clearsig command as a subprocess."""
 
 import json
 import struct
@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from eth_abi import encode
 
-from erc7730._abi import compute_selector
+from clearsig._abi import compute_selector
 
 REGISTRY_PATH = Path(__file__).parent.parent.parent / "clear-signing-erc7730-registry"
 
@@ -31,7 +31,7 @@ def registry_available() -> Path:
 
 def _run_cli(*args: str, expect_error: bool = False) -> subprocess.CompletedProcess:
     result = subprocess.run(
-        [sys.executable, "-m", "erc7730", *args],
+        [sys.executable, "-m", "clearsig", *args],
         capture_output=True,
         text=True,
         timeout=30,
