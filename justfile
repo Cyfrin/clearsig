@@ -31,8 +31,17 @@ test:
 ty:
     uv run ty check
 
+# Run a supply-chain audit (matches what CI runs)
+audit:
+    uvx pip-audit --strict
+
 # Run lint + format check + typecheck + tests
 check: lint format ty test
+
+# Install prek and the project's pre-commit hooks
+prek-install:
+    uv tool install prek
+    prek install
 
 # Cut a release (level = patch | minor | major)
 release LEVEL:

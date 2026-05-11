@@ -6,7 +6,7 @@ Implements:
 
 | Standard                                                                                        | What for                                                                                                                        |
 | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| [ERC-7730](https://github.com/LedgerHQ/clear-signing-erc7730-registry)                          | Translate raw EVM calldata to human-readable output using clear-signing descriptors.                                            |
+| [ERC-7730](https://github.com/ethereum/clear-signing-erc7730-registry)                          | Translate raw EVM calldata to human-readable output using clear-signing descriptors.                                            |
 | [ERC-8176](https://ethereum-magicians.org/t/erc-8176-integrity-verification-for-erc-7730/27911) | Descriptor hash for auditor attestations (keccak256 of RFC 8785 JCS-canonicalized JSON).                                        |
 | [ERC-8213](https://erc8213.eth.limo/)                                                           | Reproducible digests (calldata, EIP-712 domain / message / final) wallets can display before signing.                           |
 | [EIP-712](https://eips.ethereum.org/EIPS/eip-712)                                               | Typed-data hashing for arbitrary domains.                                                                                       |
@@ -49,7 +49,7 @@ uv sync
 uv run clearsig --help
 ```
 
-The first time you `clearsig translate`, the tool auto-downloads the ERC-7730 registry from `LedgerHQ/clear-signing-erc7730-registry` into `~/.clearsig/registry`. To pre-fetch or refresh:
+The first time you `clearsig translate`, the tool auto-downloads the ERC-7730 registry from `ethereum/clear-signing-erc7730-registry` into `~/.clearsig/registry`. To pre-fetch or refresh:
 
 ```bash
 clearsig update
@@ -95,7 +95,7 @@ Run `clearsig --help` or `clearsig <subcommand> --help` for the full surface.
 
 ### `translate` — read calldata with ERC-7730
 
-Convert raw EVM calldata into human-readable fields using the [ERC-7730 registry](https://github.com/LedgerHQ/clear-signing-erc7730-registry).
+Convert raw EVM calldata into human-readable fields using the [ERC-7730 registry](https://github.com/ethereum/clear-signing-erc7730-registry).
 
 ```bash
 clearsig translate \
@@ -243,7 +243,7 @@ The proxy traversal is logged to stderr. The descriptor (a couple hundred lines 
 
 ```json
 {
-  "$schema": "https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/master/specs/erc7730-v1.schema.json",
+  "$schema": "https://github.com/ethereum/clear-signing-erc7730-registry/blob/master/specs/erc7730-v1.schema.json",
   "context": {
     "contract": {
       "deployments": [{"chainId": 1, "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"}],
@@ -378,7 +378,7 @@ just check   # ruff + ruff format + ty + pytest
 Tests against the ERC-7730 registry require a local clone at `./clear-signing-erc7730-registry/`:
 
 ```bash
-git clone --depth 1 https://github.com/LedgerHQ/clear-signing-erc7730-registry.git
+git clone --depth 1 https://github.com/ethereum/clear-signing-erc7730-registry.git
 ```
 
 To regenerate the viem parity fixtures (when adding new test vectors):

@@ -1,0 +1,24 @@
+# Pre-commit hooks. Designed to be run by `prek` (https://github.com/j178/prek),
+# the Rust reimplementation of pre-commit. Install with `just prek-install`.
+#
+# These are fast checks meant to fail before a commit lands. The full
+# type-check + test suite runs in CI (see .github/workflows/ci.yml).
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format

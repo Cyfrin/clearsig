@@ -4,8 +4,6 @@ Walks each function's inputs into a struct/array/leaf tree, then heuristically p
 display format per leaf (e.g. uint256 named "amount" → amount; address named "spender"
 → addressName/contract). Output is a starter descriptor — descriptor authors are expected
 to refine labels and intents by hand.
-
-Heuristics ported from LedgerHQ/python-erc7730's generate.py.
 """
 
 from __future__ import annotations
@@ -22,8 +20,8 @@ if TYPE_CHECKING:
 SchemaVersion = Literal["v1", "v2"]
 
 _SCHEMA_URLS: dict[SchemaVersion, str] = {
-    "v1": "https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/master/specs/erc7730-v1.schema.json",
-    "v2": "https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/master/specs/erc7730-v2.schema.json",
+    "v1": "https://github.com/ethereum/clear-signing-erc7730-registry/blob/master/specs/erc7730-v1.schema.json",
+    "v2": "https://github.com/ethereum/clear-signing-erc7730-registry/blob/master/specs/erc7730-v2.schema.json",
 }
 
 _ARRAY_SUFFIX = re.compile(r"\[(\d*)\]$")
@@ -234,10 +232,7 @@ def _to_title(name: str) -> str:
 
 
 def _pick_format(name: str, data_type: str) -> tuple[str, dict | None]:
-    """Heuristically map (parameter name, ABI type) to (ERC-7730 format, params).
-
-    Mirrors the matching in LedgerHQ/python-erc7730's `_generate_field`.
-    """
+    """Heuristically map (parameter name, ABI type) to (ERC-7730 format, params)."""
     n = name.lower()
     match data_type:
         case "uint" | "int":

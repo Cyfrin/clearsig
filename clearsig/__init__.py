@@ -22,7 +22,7 @@ __all__ = [
     "update_registry",
 ]
 
-REGISTRY_REPO = "https://github.com/LedgerHQ/clear-signing-erc7730-registry.git"
+REGISTRY_REPO = "https://github.com/ethereum/clear-signing-erc7730-registry.git"
 DEFAULT_REGISTRY_DIR = Path.home() / ".clearsig" / "registry"
 
 _registry_cache: dict[str, Registry] = {}

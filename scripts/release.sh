@@ -10,9 +10,11 @@
 # What it does:
 #   1. `uv version --bump <level>` bumps pyproject.toml.
 #   2. Reads the new version with `uv version --short`.
-#   3. Commits the bump as "release vX.Y.Z" and creates a matching `vX.Y.Z` tag.
-#   4. Pushes the commit AND the tag.
-#   5. `gh release create` opens a GitHub Release on that tag with
+#   3. Moves CHANGELOG.md's [Unreleased] content under a [vX.Y.Z] header with today's date
+#      (refuses if there's nothing to release).
+#   4. Commits the bump + changelog as "release vX.Y.Z" and creates a matching `vX.Y.Z` tag.
+#   5. Pushes the commit AND the tag.
+#   6. `gh release create` opens a GitHub Release on that tag with
 #      auto-generated notes; the publish workflow picks it up from there.
 #
 # Pre-flight: working tree must be clean and on main.
@@ -62,14 +64,26 @@ if [ "$BRANCH" != "main" ]; then
   [ "$reply" = "y" ] || [ "$reply" = "Y" ] || exit 1
 fi
 
+PREV_VERSION=$(uv version --short)
+
 echo "→ bumping version ($LEVEL) in pyproject.toml"
 uv version --bump "$LEVEL" >/dev/null
 NEW_VERSION=$(uv version --short)
 NEW_TAG="v$NEW_VERSION"
-echo "  new version: $NEW_VERSION"
+echo "  $PREV_VERSION → $NEW_VERSION"
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+if [ -f "$SCRIPT_DIR/../CHANGELOG.md" ]; then
+  echo "→ updating CHANGELOG.md"
+  uv run python "$SCRIPT_DIR/update_changelog.py" "$NEW_VERSION" "$PREV_VERSION"
+  CHANGELOG_PATH="$SCRIPT_DIR/../CHANGELOG.md"
+else
+  echo "  (no CHANGELOG.md; skipping)"
+  CHANGELOG_PATH=""
+fi
 
 echo "→ committing and tagging $NEW_TAG"
-git add pyproject.toml uv.lock
+git add pyproject.toml uv.lock ${CHANGELOG_PATH:+"$CHANGELOG_PATH"}
 git commit -m "release $NEW_TAG"
 git tag "$NEW_TAG"
 
