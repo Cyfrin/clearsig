@@ -85,7 +85,8 @@ fi
 echo "→ committing and tagging $NEW_TAG"
 git add pyproject.toml uv.lock ${CHANGELOG_PATH:+"$CHANGELOG_PATH"}
 git commit -m "release $NEW_TAG"
-git tag "$NEW_TAG"
+# Annotated tag (lightweight tags are not pushed by --follow-tags).
+git tag -a "$NEW_TAG" -m "release $NEW_TAG"
 
 echo "→ pushing commit + tag"
 git push --follow-tags
