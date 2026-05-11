@@ -78,6 +78,21 @@ registry = Registry.load()  # uses env var or ~/.erc7730/registry
 result = translate_with_registry(registry, calldata, to="0x...", chain_id=1)
 ```
 
+#### Descriptor hashing
+
+For auditor attestations under ERC-8176, compute the descriptor hash as the keccak256 of the RFC 8785 JCS-canonicalized JSON:
+
+```python
+from pathlib import Path
+
+from erc7730 import descriptor_hash_hex
+
+print(descriptor_hash_hex(Path("registry/lido/calldata-stETH.json")))
+# 0x00a23d24e410f0cbf3836058db29177d7d249a5f3deedbb518dacbb841f73de9
+```
+
+`descriptor_hash_hex` accepts a `Path`, a JSON string, or an already-parsed `dict`. The lower-level `descriptor_hash` returns raw 32 bytes.
+
 ### CLI
 
 ```bash
@@ -86,6 +101,9 @@ erc7730 update
 
 # Translate calldata
 erc7730 translate <calldata> --to <contract_address> [--chain-id 1] [--from-address 0x...] [--json]
+
+# Compute the ERC-8176 descriptor hash (for auditor attestations)
+erc7730 hash <path-to-descriptor.json>
 ```
 
 ## Testing

@@ -326,3 +326,46 @@ class TestCLIErrors:
         )
         assert result.returncode != 0
         assert "too short" in result.stderr
+
+
+class TestHash:
+    def test_hash_outputs_hex_digest(self, tmp_path: Path):
+        descriptor = {
+            "context": {
+                "$id": "Test",
+                "contract": {
+                    "deployments": [
+                        {
+                            "chainId": 1,
+                            "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                        },
+                    ]
+                },
+            },
+            "display": {"formats": {}},
+        }
+        path = tmp_path / "descriptor.json"
+        path.write_text(json.dumps(descriptor))
+
+        result = _run_cli("hash", str(path))
+        output = result.stdout.strip()
+        assert output.startswith("0x")
+        assert len(output) == 66
+        int(output, 16)
+
+    def test_hash_stable_across_whitespace(self, tmp_path: Path):
+        """The CLI returns the same hash regardless of input whitespace."""
+        descriptor = {"context": {"$id": "Test"}, "display": {"formats": {}}}
+        compact_path = tmp_path / "compact.json"
+        pretty_path = tmp_path / "pretty.json"
+        compact_path.write_text(json.dumps(descriptor, separators=(",", ":")))
+        pretty_path.write_text(json.dumps(descriptor, indent=2))
+
+        compact = _run_cli("hash", str(compact_path)).stdout.strip()
+        pretty = _run_cli("hash", str(pretty_path)).stdout.strip()
+        assert compact == pretty
+
+    def test_hash_missing_file(self):
+        result = _run_cli("hash", "/nonexistent/descriptor.json", expect_error=True)
+        assert result.returncode != 0
+        assert "Error" in result.stderr
