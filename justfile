@@ -27,8 +27,12 @@ format-fix:
 test:
     uv run pytest -q
 
-# Run lint + format check + tests
-check: lint format test
+# Run typechecker
+ty:
+    uv run ty check
+
+# Run lint + format check + typecheck + tests
+check: lint format ty test
 
 # Cut a release (level = patch | minor | major)
 release LEVEL:

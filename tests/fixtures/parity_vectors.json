@@ -1,0 +1,396 @@
+{
+  "generator": "viem",
+  "generatedAt": "2026-05-11T21:11:39.055Z",
+  "calldataDigest": [
+    {
+      "label": "empty",
+      "input": "0x",
+      "digest": "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
+    },
+    {
+      "label": "one byte",
+      "input": "0xff",
+      "digest": "0xfff13a7ca87b7d346828862d16e88f7d9406d28a13d35d2f9e72950a41ffbe34"
+    },
+    {
+      "label": "bare selector",
+      "input": "0x095ea7b3",
+      "digest": "0x19a0b5585d737d7b067ca48a582168ac3e44d4ca19647a5c2ae80da1c8dc970b"
+    },
+    {
+      "label": "ERC-20 transfer",
+      "input": "0xa9059cbb0000000000000000000000004675c7e5baafbffbca748158becba61ef3b0a2630000000000000000000000000000000000000000000000000de0b6b3a7640000",
+      "digest": "0x812cee5d9cc7461c04bbcd7b70af9c28b243ac5d74d3453b008b93b7dac69985"
+    },
+    {
+      "label": "32 random bytes",
+      "input": "0xabababababababababababababababababababababababababababababababab",
+      "digest": "0x5737717afa2abe946560e75d41de75f4f48ccab2cd9215a3be2e2dca6161ec0f"
+    },
+    {
+      "label": "128 random bytes",
+      "input": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+      "digest": "0x7c954bdc01dbf0e4d6c5169dbe8c100a97b553c0d7870198b056054d6b74ecca"
+    },
+    {
+      "label": "513 bytes (odd)",
+      "input": "0xefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+      "digest": "0x70551fe06f3ac7361c25ab30a211fcea602f631dc360cf9f06aa511c245b4335"
+    }
+  ],
+  "eip712": [
+    {
+      "label": "EIP-712 spec Mail",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "version",
+              "type": "string"
+            },
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ],
+          "Person": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "wallet",
+              "type": "address"
+            }
+          ],
+          "Mail": [
+            {
+              "name": "from",
+              "type": "Person"
+            },
+            {
+              "name": "to",
+              "type": "Person"
+            },
+            {
+              "name": "contents",
+              "type": "string"
+            }
+          ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+          "name": "Ether Mail",
+          "version": "1",
+          "chainId": 1,
+          "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+          "from": {
+            "name": "Cow",
+            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+          },
+          "to": {
+            "name": "Bob",
+            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+          },
+          "contents": "Hello, Bob!"
+        }
+      },
+      "domainHash": "0xf2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f",
+      "messageHash": "0xc52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e",
+      "digest": "0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
+    },
+    {
+      "label": "Permit2 PermitTransferFrom",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ],
+          "PermitTransferFrom": [
+            {
+              "name": "permitted",
+              "type": "TokenPermissions"
+            },
+            {
+              "name": "spender",
+              "type": "address"
+            },
+            {
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256"
+            }
+          ],
+          "TokenPermissions": [
+            {
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256"
+            }
+          ]
+        },
+        "primaryType": "PermitTransferFrom",
+        "domain": {
+          "name": "Permit2",
+          "chainId": 1,
+          "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+        },
+        "message": {
+          "permitted": {
+            "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "amount": "1000000000"
+          },
+          "spender": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+          "nonce": "0",
+          "deadline": "1893456000"
+        }
+      },
+      "domainHash": "0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28",
+      "messageHash": "0x7d1be9b8c7677c8cc6adba965260e35822632ef4eb35ddd5d6aafe26cb1ef882",
+      "digest": "0x01e5a64a608f03873d795fe77fe6bcd1a15692ee25bc02dd638b8fbc3753625c"
+    },
+    {
+      "label": "mixed atomic types",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ],
+          "Mixed": [
+            {
+              "name": "flag",
+              "type": "bool"
+            },
+            {
+              "name": "salt",
+              "type": "bytes32"
+            },
+            {
+              "name": "payload",
+              "type": "bytes"
+            },
+            {
+              "name": "count",
+              "type": "uint8"
+            },
+            {
+              "name": "signed",
+              "type": "int256"
+            }
+          ]
+        },
+        "primaryType": "Mixed",
+        "domain": {
+          "name": "Mixed",
+          "chainId": 1,
+          "verifyingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "message": {
+          "flag": true,
+          "salt": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "payload": "0xdeadbeefcafebabe",
+          "count": 255,
+          "signed": -42
+        }
+      },
+      "domainHash": "0xec1c26305dcedf16dd599e5298644e64c3a0b51e5c6002a8cdd4c387eb1df848",
+      "messageHash": "0x2ccd5f7abb19b26c6a0240327a6b2842587004de4d4a18d32b39fd0a3b2d43e7",
+      "digest": "0x9c791d83c71fc1eb5a033388fa0779ad2aedb0ff1b1a87052c8ca367e325fb95"
+    },
+    {
+      "label": "array of uint256",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "Bag": [
+            {
+              "name": "items",
+              "type": "uint256[]"
+            }
+          ]
+        },
+        "primaryType": "Bag",
+        "domain": {
+          "name": "Bag"
+        },
+        "message": {
+          "items": [
+            "1",
+            "2",
+            "3",
+            "1000000000000000000"
+          ]
+        }
+      },
+      "domainHash": "0x219c7d2ef923e2574978c61ec0dab874308ef179ee72966df5170a3bae477d1e",
+      "messageHash": "0x50450ca4bd68edf6a228bea3678be1edb1238537245501cecbf5daf0cb11d099",
+      "digest": "0xeb5dee87919c57389a24fca758a3ff308692023bb0aef15cfddac04f4b03fb05"
+    },
+    {
+      "label": "fixed-size address array",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "Trio": [
+            {
+              "name": "addrs",
+              "type": "address[3]"
+            }
+          ]
+        },
+        "primaryType": "Trio",
+        "domain": {
+          "name": "Trio"
+        },
+        "message": {
+          "addrs": [
+            "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+            "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+            "0x0101010101010101010101010101010101010101"
+          ]
+        }
+      },
+      "domainHash": "0xf80686e8d6f8366623a8cc65304d6a3abb10574c69bd4f8c1fa10c903d70c30a",
+      "messageHash": "0x14ce508954b1c56061d3bc25929ecf7d1d940987c9081366ea1282edf9bf5a69",
+      "digest": "0xe1b1489ac16931cb278492d55474538464ea85065f4b1f6ebe7b65de042ba8c5"
+    },
+    {
+      "label": "array of struct",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "Basket": [
+            {
+              "name": "items",
+              "type": "Item[]"
+            }
+          ],
+          "Item": [
+            {
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "name": "owner",
+              "type": "address"
+            }
+          ]
+        },
+        "primaryType": "Basket",
+        "domain": {
+          "name": "Basket"
+        },
+        "message": {
+          "items": [
+            {
+              "id": "1",
+              "owner": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            {
+              "id": "2",
+              "owner": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            }
+          ]
+        }
+      },
+      "domainHash": "0x9ba3baea7a637c75e3207849cdd21a7a26df99e3e2ca91737171c2c81750b2d6",
+      "messageHash": "0x1cc17586ec932d71b4ee84be32e86c29c41a4804571ab11b4d520925eeef47d9",
+      "digest": "0xacf4fcc918098f7cc6512f069f405c000e9e3badfc9321d52f241c9af32c2806"
+    },
+    {
+      "label": "2D uint256 matrix",
+      "doc": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ],
+          "Matrix": [
+            {
+              "name": "rows",
+              "type": "uint256[][]"
+            }
+          ]
+        },
+        "primaryType": "Matrix",
+        "domain": {
+          "name": "Matrix"
+        },
+        "message": {
+          "rows": [
+            [
+              "1",
+              "2"
+            ],
+            [
+              "3",
+              "4"
+            ],
+            [
+              "5",
+              "6"
+            ]
+          ]
+        }
+      },
+      "domainHash": "0x4793bb632f0370083a20143af388393b1586b7b6effde102748f96f674bcb9b4",
+      "messageHash": "0x150900456c1e585a6c2336fc96e698110b36c3439f2b0b357324eea00c97470b",
+      "digest": "0xb56782e3b6517a8222af35cb70e5bf716f7ebfbc366d2ba14c897fe117a27a9e"
+    }
+  ]
+}

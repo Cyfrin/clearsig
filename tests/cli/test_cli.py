@@ -413,11 +413,20 @@ class TestHash:
         path = tmp_path / "descriptor.json"
         path.write_text(json.dumps(descriptor))
 
-        result = _run_cli("hash", str(path))
+        result = _run_cli("descriptor-hash", str(path))
         output = result.stdout.strip()
         assert output.startswith("0x")
         assert len(output) == 66
         int(output, 16)
+
+    def test_hash_via_dh_alias(self, tmp_path: Path):
+        descriptor = {"context": {"$id": "Test"}, "display": {"formats": {}}}
+        path = tmp_path / "descriptor.json"
+        path.write_text(json.dumps(descriptor))
+
+        via_full = _run_cli("descriptor-hash", str(path)).stdout.strip()
+        via_alias = _run_cli("dh", str(path)).stdout.strip()
+        assert via_full == via_alias
 
     def test_hash_stable_across_whitespace(self, tmp_path: Path):
         """The CLI returns the same hash regardless of input whitespace."""
@@ -427,11 +436,11 @@ class TestHash:
         compact_path.write_text(json.dumps(descriptor, separators=(",", ":")))
         pretty_path.write_text(json.dumps(descriptor, indent=2))
 
-        compact = _run_cli("hash", str(compact_path)).stdout.strip()
-        pretty = _run_cli("hash", str(pretty_path)).stdout.strip()
+        compact = _run_cli("descriptor-hash", str(compact_path)).stdout.strip()
+        pretty = _run_cli("descriptor-hash", str(pretty_path)).stdout.strip()
         assert compact == pretty
 
     def test_hash_missing_file(self):
-        result = _run_cli("hash", "/nonexistent/descriptor.json", expect_error=True)
+        result = _run_cli("descriptor-hash", "/nonexistent/descriptor.json", expect_error=True)
         assert result.returncode != 0
         assert "Error" in result.stderr
