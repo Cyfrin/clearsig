@@ -5,7 +5,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from clearsig._abi import decode_calldata, hex_to_bytes
+from clearsig._abi import (
+    decode_calldata,
+    decode_calldata_with_signature,
+    encode_calldata,
+    encode_calldata_hex,
+    hex_to_bytes,
+)
 from clearsig._descriptor_hash import descriptor_hash, descriptor_hash_hex
 from clearsig._formatter import format_fields
 from clearsig._models import TranslatedCalldata, TranslatedField
@@ -15,8 +21,11 @@ __all__ = [
     "Registry",
     "TranslatedCalldata",
     "TranslatedField",
+    "decode_calldata_with_signature",
     "descriptor_hash",
     "descriptor_hash_hex",
+    "encode_calldata",
+    "encode_calldata_hex",
     "translate",
     "translate_with_registry",
     "update_registry",

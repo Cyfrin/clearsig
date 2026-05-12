@@ -44,10 +44,77 @@ def app() -> None:
         help="Path to the ERC-7730 descriptor JSON file",
     )
 
+    # calldata subcommand
+    calldata_parser = subparsers.add_parser(
+        "calldata",
+        aliases=["cd"],
+        help="ABI-encode a function signature and arguments into calldata",
+    )
+    calldata_parser.add_argument(
+        "signature",
+        help='Function signature, e.g. "approve(address,uint256)"',
+    )
+    calldata_parser.add_argument(
+        "args",
+        nargs="*",
+        help="Arguments matching the signature, in order",
+    )
+
+    # calldata-decode subcommand
+    calldata_decode_parser = subparsers.add_parser(
+        "calldata-decode",
+        help="Decode ABI-encoded calldata against a function signature",
+    )
+    calldata_decode_parser.add_argument(
+        "signature",
+        help='Function signature, e.g. "approve(address,uint256)"',
+    )
+    calldata_decode_parser.add_argument(
+        "calldata",
+        help="Hex-encoded calldata (with or without 0x)",
+    )
+    calldata_decode_parser.add_argument(
+        "--json", dest="output_json", action="store_true", help="Output as JSON"
+    )
+
+    # sig subcommand
+    sig_parser = subparsers.add_parser(
+        "sig",
+        help="Compute the 4-byte function selector from a signature",
+    )
+    sig_parser.add_argument(
+        "signature",
+        help='Function signature, e.g. "approve(address,uint256)"',
+    )
+
+    # keccak subcommand
+    keccak_parser = subparsers.add_parser(
+        "keccak",
+        help="keccak256 hash of input (hex bytes if 0x-prefixed, UTF-8 string otherwise)",
+    )
+    keccak_parser.add_argument("data", help="0x-prefixed hex or a literal string")
+    keccak_parser.add_argument(
+        "--string",
+        action="store_true",
+        help="Force string mode (hash UTF-8 bytes even if input starts with 0x)",
+    )
+
+    # 4byte subcommand
+    fourbyte_parser = subparsers.add_parser(
+        "4byte",
+        help="Reverse-lookup a function selector via 4byte.directory",
+    )
+    fourbyte_parser.add_argument("selector", help="4-byte selector hex (e.g. 0x095ea7b3)")
+    fourbyte_parser.add_argument(
+        "--base-url",
+        default="https://www.4byte.directory",
+        help="4byte.directory base URL",
+    )
+
     # calldata-digest subcommand
     calldata_digest_parser = subparsers.add_parser(
         "calldata-digest",
-        aliases=["cd"],
+        aliases=["cdg"],
         help="Compute the ERC-8213 calldata digest: keccak256(uint256(len) || calldata)",
     )
     calldata_digest_parser.add_argument(
@@ -176,7 +243,17 @@ def app() -> None:
         _handle_update()
     elif args.command in ("descriptor-hash", "dh"):
         _handle_descriptor_hash(args)
-    elif args.command in ("calldata-digest", "cd"):
+    elif args.command in ("calldata", "cd"):
+        _handle_calldata(args)
+    elif args.command == "calldata-decode":
+        _handle_calldata_decode(args)
+    elif args.command == "sig":
+        _handle_sig(args)
+    elif args.command == "keccak":
+        _handle_keccak(args)
+    elif args.command == "4byte":
+        _handle_fourbyte(args)
+    elif args.command in ("calldata-digest", "cdg"):
         _handle_calldata_digest(args)
     elif args.command == "eip712":
         _handle_eip712(args)
@@ -238,6 +315,88 @@ def _handle_descriptor_hash(args: argparse.Namespace) -> None:
     except (OSError, json.JSONDecodeError, TypeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+def _handle_calldata(args: argparse.Namespace) -> None:
+    from clearsig._abi import encode_calldata_hex
+
+    try:
+        print(encode_calldata_hex(args.signature, args.args))
+    except (ValueError, OverflowError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _handle_calldata_decode(args: argparse.Namespace) -> None:
+    from clearsig._abi import decode_calldata_with_signature
+
+    try:
+        name, _types, values = decode_calldata_with_signature(args.signature, args.calldata)
+    except (ValueError, OverflowError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    rendered = [_render_value(v) for v in values]
+    if args.output_json:
+        print(json.dumps({"function": name, "args": rendered}, indent=2))
+    else:
+        for value in rendered:
+            print(value)
+
+
+def _render_value(value: object) -> str:
+    if isinstance(value, bytes):
+        return "0x" + value.hex()
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_render_value(v) for v in value) + "]"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def _handle_keccak(args: argparse.Namespace) -> None:
+    from eth_hash.auto import keccak
+
+    from clearsig._abi import hex_to_bytes
+
+    raw: str = args.data
+    try:
+        if not args.string and raw.lower().startswith("0x"):
+            data = hex_to_bytes(raw)
+        else:
+            data = raw.encode()
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    print("0x" + keccak(data).hex())
+
+
+def _handle_fourbyte(args: argparse.Namespace) -> None:
+    from clearsig._fourbyte import lookup_selector
+
+    try:
+        signatures = lookup_selector(args.selector, base_url=args.base_url)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if not signatures:
+        print(f"No signatures found for {args.selector}", file=sys.stderr)
+        sys.exit(1)
+    for sig in signatures:
+        print(sig)
+
+
+def _handle_sig(args: argparse.Namespace) -> None:
+    from clearsig._abi import compute_selector, parse_display_signature
+
+    try:
+        name, types = parse_display_signature(args.signature)
+        selector = compute_selector(name, types)
+    except (ValueError, IndexError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    print("0x" + selector.hex())
 
 
 def _handle_calldata_digest(args: argparse.Namespace) -> None:

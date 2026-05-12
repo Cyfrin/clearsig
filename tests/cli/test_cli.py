@@ -447,3 +447,114 @@ class TestHash:
         result = _run_cli("descriptor-hash", "/nonexistent/descriptor.json", expect_error=True)
         assert result.returncode != 0
         assert "Error" in result.stderr
+
+
+class TestCalldataEncoding:
+    APPROVE_HEX = (
+        "0x095ea7b3"
+        "00000000000000000000000005c54380408ab9c31157b7563138f798f7826aa0"
+        "0000000000000000000000000000000000000000000000000000000000000001"
+    )
+
+    def test_calldata_command(self):
+        result = _run_cli(
+            "calldata",
+            "approve(address,uint256)",
+            "0x05C54380408aB9c31157B7563138F798f7826aA0",
+            "1",
+        )
+        assert result.stdout.strip() == self.APPROVE_HEX
+
+    def test_calldata_cd_alias(self):
+        result = _run_cli(
+            "cd",
+            "approve(address,uint256)",
+            "0x05C54380408aB9c31157B7563138F798f7826aA0",
+            "1",
+        )
+        assert result.stdout.strip() == self.APPROVE_HEX
+
+    def test_calldata_wrong_arg_count(self):
+        result = _run_cli(
+            "calldata",
+            "approve(address,uint256)",
+            "0x05C54380408aB9c31157B7563138F798f7826aA0",
+            expect_error=True,
+        )
+        assert result.returncode != 0
+        assert "Error" in result.stderr
+
+
+class TestSig:
+    def test_approve_selector(self):
+        result = _run_cli("sig", "approve(address,uint256)")
+        assert result.stdout.strip() == "0x095ea7b3"
+
+    def test_transfer_selector(self):
+        result = _run_cli("sig", "transfer(address,uint256)")
+        assert result.stdout.strip() == "0xa9059cbb"
+
+    def test_no_args(self):
+        result = _run_cli("sig", "pause()")
+        assert result.stdout.strip().startswith("0x")
+        assert len(result.stdout.strip()) == 10
+
+
+class TestCalldataDigestCdgAlias:
+    def test_cdg_alias_matches_full_name(self):
+        calldata = "0xa9059cbb"
+        via_full = _run_cli("calldata-digest", calldata).stdout.strip()
+        via_alias = _run_cli("cdg", calldata).stdout.strip()
+        assert via_full == via_alias
+
+
+APPROVE_CALLDATA = (
+    "0x095ea7b3"
+    "00000000000000000000000005c54380408ab9c31157b7563138f798f7826aa0"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+)
+
+
+class TestCalldataDecode:
+    def test_decodes_human(self):
+        result = _run_cli("calldata-decode", "approve(address,uint256)", APPROVE_CALLDATA)
+        lines = result.stdout.strip().splitlines()
+        assert lines[0].lower() == "0x05c54380408ab9c31157b7563138f798f7826aa0"
+        assert lines[1] == "1"
+
+    def test_decodes_json(self):
+        result = _run_cli("calldata-decode", "approve(address,uint256)", APPROVE_CALLDATA, "--json")
+        data = json.loads(result.stdout)
+        assert data["function"] == "approve"
+        assert data["args"][0].lower() == "0x05c54380408ab9c31157b7563138f798f7826aa0"
+        assert data["args"][1] == "1"
+
+    def test_selector_mismatch_errors(self):
+        result = _run_cli(
+            "calldata-decode",
+            "transfer(address,uint256)",
+            APPROVE_CALLDATA,
+            expect_error=True,
+        )
+        assert result.returncode != 0
+        assert "selector mismatch" in result.stderr
+
+
+class TestKeccak:
+    def test_hashes_string(self):
+        # keccak256("approve(address,uint256)") begins with the approve selector
+        result = _run_cli("keccak", "approve(address,uint256)")
+        assert result.stdout.strip().startswith("0x095ea7b3")
+
+    def test_hashes_hex_bytes(self):
+        # keccak256(b"") — the empty-bytes hash
+        result = _run_cli("keccak", "0x")
+        assert result.stdout.strip() == (
+            "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        )
+
+    def test_string_flag_forces_utf8_mode(self):
+        # Without --string, "0x" hashes as empty bytes. With --string, hash UTF-8 "0x".
+        hex_mode = _run_cli("keccak", "0x").stdout.strip()
+        str_mode = _run_cli("keccak", "0x", "--string").stdout.strip()
+        assert hex_mode != str_mode

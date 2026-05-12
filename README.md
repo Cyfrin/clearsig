@@ -122,7 +122,59 @@ clearsig descriptor-hash ~/.clearsig/registry/ercs/calldata-erc20-tokens.json
 
 Output is the keccak256 of the RFC 8785 JCS-canonicalized JSON — stable across formatting, key order, and trailing whitespace. Auditors sign this hash to attest that a descriptor faithfully represents a contract.
 
-### `calldata-digest` / `cd` — ERC-8213 calldata digest
+### `calldata` / `cd` — ABI-encode a function call
+
+```bash
+clearsig calldata "approve(address,uint256)" 0x05C54380408aB9c31157B7563138F798f7826aA0 1
+# 0x095ea7b300000000000000000000000005c54380408ab9c31157b7563138f798f7826aa00000000000000000000000000000000000000000000000000000000000000001
+```
+
+Encodes a function signature plus its arguments into the standard 4-byte-selector + ABI-encoded-params calldata layout. Supports primitive types (`address`, `bool`, `intN`/`uintN`, `bytes`/`bytesN`, `string`) and JSON-syntax arrays (`[1,2,3]`, `["0x...","0x..."]`).
+
+### `calldata-decode` — decode calldata against a signature
+
+```bash
+clearsig calldata-decode "approve(address,uint256)" \
+  0x095ea7b300000000000000000000000005c54380408ab9c31157b7563138f798f7826aa00000000000000000000000000000000000000000000000000000000000000001
+# 0x05c54380408ab9c31157b7563138f798f7826aa0
+# 1
+```
+
+Offline counterpart to `calldata`. Verifies the 4-byte selector matches the signature before decoding so a mistyped signature errors instead of silently producing garbage. Add `--json` for structured output.
+
+### `sig` — function selector from signature
+
+```bash
+clearsig sig "approve(address,uint256)"
+# 0x095ea7b3
+```
+
+The 4-byte selector — first 4 bytes of `keccak256(signature)`.
+
+### `keccak` — keccak256 of input
+
+```bash
+clearsig keccak "approve(address,uint256)"
+# 0x095ea7b334ae44009aa867bfb386f5c3b4b443ac6f0ee573fa91c4608fbadfba
+
+clearsig keccak 0xdeadbeef
+# 0xd4fd4e189132273036449fc9e11198c739161b4c0116a9a2dccdfa1c492006f1
+```
+
+If the input starts with `0x`, the hex bytes are hashed; otherwise the UTF-8 bytes of the string are hashed. Pass `--string` to force UTF-8 mode even when the input is `0x…`.
+
+### `4byte` — reverse-lookup a selector
+
+```bash
+clearsig 4byte 0x095ea7b3
+# approve(address,uint256)
+# sign_szabo_bytecode(bytes16,uint128)
+# …
+```
+
+Queries [4byte.directory](https://www.4byte.directory/) for text signatures matching a 4-byte selector. Results are sorted oldest-first (ascending id) — the earliest registered signature is the conventional pick when multiple results exist (later ones may be hash-collision spam). Requires network access; pair with `calldata-decode` to interpret calldata of unknown origin.
+
+### `calldata-digest` / `cdg` — ERC-8213 calldata digest
 
 ```bash
 # transfer(0x4675c7..., 1e18) — ERC-20 transfer of 1 token
@@ -130,7 +182,7 @@ clearsig calldata-digest 0xa9059cbb0000000000000000000000004675c7e5baafbffbca748
 # 0x812cee5d9cc7461c04bbcd7b70af9c28b243ac5d74d3453b008b93b7dac69985
 
 # Plain ETH transfer — empty calldata is valid (length prefix is 32 zero bytes)
-clearsig cd 0x
+clearsig cdg 0x
 # 0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563
 ```
 

@@ -1,9 +1,13 @@
+import pytest
 from eth_abi import encode
 
 from clearsig._abi import (
     canonical_type,
     compute_selector,
     decode_calldata,
+    decode_calldata_with_signature,
+    encode_calldata,
+    encode_calldata_hex,
     function_selector,
     hex_to_bytes,
     parse_display_signature,
@@ -174,6 +178,86 @@ class TestParseDisplaySignature:
         name, types = parse_display_signature("setup(address[] _owners, uint256 _threshold)")
         assert name == "setup"
         assert types == ["address[]", "uint256"]
+
+
+class TestEncodeCalldata:
+    APPROVE_HEX = (
+        "0x095ea7b3"
+        "00000000000000000000000005c54380408ab9c31157b7563138f798f7826aa0"
+        "0000000000000000000000000000000000000000000000000000000000000001"
+    )
+
+    def test_approve(self):
+        result = encode_calldata_hex(
+            "approve(address,uint256)",
+            ["0x05C54380408aB9c31157B7563138F798f7826aA0", "1"],
+        )
+        assert result == self.APPROVE_HEX
+
+    def test_returns_bytes(self):
+        result = encode_calldata(
+            "approve(address,uint256)",
+            ["0x05C54380408aB9c31157B7563138F798f7826aA0", "1"],
+        )
+        assert isinstance(result, bytes)
+        assert "0x" + result.hex() == self.APPROVE_HEX
+
+    def test_hex_uint_arg(self):
+        result = encode_calldata_hex(
+            "approve(address,uint256)",
+            ["0x05C54380408aB9c31157B7563138F798f7826aA0", "0xff"],
+        )
+        assert result.endswith("00" * 31 + "ff")
+
+    def test_bool_arg(self):
+        result = encode_calldata_hex("setApproved(bool)", ["true"])
+        assert result.endswith("01")
+
+    def test_string_arg(self):
+        result = encode_calldata_hex("greet(string)", ["hi"])
+        # selector for greet(string)
+        assert result.startswith("0x" + compute_selector("greet", ["string"]).hex())
+
+    def test_array_arg(self):
+        result = encode_calldata_hex("set(uint256[])", ["[1,2,3]"])
+        assert result.startswith("0x" + compute_selector("set", ["uint256[]"]).hex())
+
+    def test_no_args(self):
+        result = encode_calldata_hex("pause()", [])
+        assert result == "0x" + compute_selector("pause", []).hex()
+
+    def test_wrong_arg_count(self):
+        with pytest.raises(ValueError, match="expects 2 argument"):
+            encode_calldata("approve(address,uint256)", ["0x0"])
+
+    def test_unsupported_type(self):
+        with pytest.raises(ValueError, match="unsupported ABI type"):
+            encode_calldata("f(weirdtype)", ["x"])
+
+
+class TestDecodeCalldataWithSignature:
+    APPROVE_HEX = (
+        "0x095ea7b3"
+        "00000000000000000000000005c54380408ab9c31157b7563138f798f7826aa0"
+        "0000000000000000000000000000000000000000000000000000000000000001"
+    )
+
+    def test_roundtrip(self):
+        name, types, values = decode_calldata_with_signature(
+            "approve(address,uint256)", self.APPROVE_HEX
+        )
+        assert name == "approve"
+        assert types == ["address", "uint256"]
+        assert values[0].lower() == "0x05c54380408ab9c31157b7563138f798f7826aa0"
+        assert values[1] == 1
+
+    def test_selector_mismatch_raises(self):
+        with pytest.raises(ValueError, match="selector mismatch"):
+            decode_calldata_with_signature("transfer(address,uint256)", self.APPROVE_HEX)
+
+    def test_too_short_raises(self):
+        with pytest.raises(ValueError, match="too short"):
+            decode_calldata_with_signature("approve(address,uint256)", "0xabcd")
 
 
 class TestHexToBytes:

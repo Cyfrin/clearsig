@@ -7,6 +7,28 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- **`calldata`** (alias `cd`) — ABI-encode a function signature and arguments into
+  calldata. Example: `clearsig calldata "approve(address,uint256)" 0x05C5...aA0 1`.
+  Supports primitive types and JSON-syntax arrays.
+- **`calldata-decode`** — offline inverse of `calldata`. Decodes ABI-encoded
+  calldata against a signature and verifies the selector matches.
+- **`sig`** — compute the 4-byte function selector from a signature.
+  Example: `clearsig sig "approve(address,uint256)"` → `0x095ea7b3`.
+- **`keccak`** — keccak256 of hex bytes (`0x…`) or UTF-8 string. `--string`
+  forces UTF-8 mode.
+- **`4byte`** — reverse-lookup a 4-byte selector via [4byte.directory](https://www.4byte.directory/).
+  Results sorted oldest-first (ascending id) so the canonical signature comes
+  before collision spam.
+- Python SDK: `encode_calldata`, `encode_calldata_hex`,
+  `decode_calldata_with_signature`, `lookup_selector` (in `clearsig._fourbyte`).
+
+### Changed
+
+- **Breaking**: `calldata-digest`'s short alias moved from `cd` to `cdg`, so `cd`
+  can match the Foundry convention of `cd` = `calldata` encoding.
+
 ## [0.2.0] - 2026-05-11
 
 ### Added

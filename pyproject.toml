@@ -53,7 +53,7 @@ markers = [
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TC"]
 
 [dependency-groups]
 dev = [

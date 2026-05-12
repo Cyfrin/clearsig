@@ -1,6 +1,9 @@
-"""ABI utilities: selector computation, calldata decoding, signature parsing."""
+"""ABI utilities: selector computation, calldata encoding/decoding, signature parsing."""
+
+import json
 
 from eth_abi import decode as abi_decode
+from eth_abi import encode as abi_encode
 from eth_hash.auto import keccak
 
 
@@ -83,6 +86,99 @@ def _split_params(params_str: str) -> list[str]:
     if buf:
         parts.append("".join(buf))
     return parts
+
+
+def coerce_arg(soltype: str, raw: str):
+    """Coerce a CLI string argument into the Python value `eth_abi.encode` expects.
+
+    Supports primitives (address, bool, intN/uintN, bytes/bytesN, string) and
+    one level of array nesting via JSON syntax (e.g. `[1,2,3]`, `["0x...","0x..."]`).
+    """
+    raw = raw.strip()
+
+    if soltype.endswith("]"):
+        base = soltype[: soltype.rindex("[")]
+        try:
+            items = json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"expected JSON array for type {soltype}, got: {raw!r} ({e.msg})"
+            ) from e
+        if not isinstance(items, list):
+            raise ValueError(f"expected JSON array for type {soltype}, got: {raw!r}")
+        return [coerce_arg(base, _stringify(item)) for item in items]
+
+    if soltype == "bool":
+        lowered = raw.lower()
+        if lowered in ("true", "1"):
+            return True
+        if lowered in ("false", "0"):
+            return False
+        raise ValueError(f"expected bool (true/false), got: {raw!r}")
+
+    if soltype.startswith(("uint", "int")):
+        return int(raw, 0)
+
+    if soltype == "address":
+        return raw
+
+    if soltype == "bytes" or (soltype.startswith("bytes") and soltype[5:].isdigit()):
+        return hex_to_bytes(raw)
+
+    if soltype == "string":
+        return raw
+
+    raise ValueError(f"unsupported ABI type for CLI encoding: {soltype}")
+
+
+def _stringify(item: object) -> str:
+    if isinstance(item, str):
+        return item
+    if isinstance(item, bool):
+        return "true" if item else "false"
+    return json.dumps(item)
+
+
+def encode_calldata(signature: str, args: list[str]) -> bytes:
+    """Encode a function signature plus string arguments into ABI calldata.
+
+    Returns the 4-byte selector followed by the ABI-encoded parameters.
+    """
+    name, types = parse_display_signature(signature)
+    if len(args) != len(types):
+        raise ValueError(f"{name} expects {len(types)} argument(s), got {len(args)}")
+    values = [coerce_arg(t, a) for t, a in zip(types, args, strict=True)]
+    selector = compute_selector(name, types)
+    return selector + abi_encode(types, values)
+
+
+def encode_calldata_hex(signature: str, args: list[str]) -> str:
+    """Hex-encoded (`0x...`) form of :func:`encode_calldata`."""
+    return "0x" + encode_calldata(signature, args).hex()
+
+
+def decode_calldata_with_signature(
+    signature: str, calldata: str | bytes
+) -> tuple[str, list[str], tuple]:
+    """Decode calldata against a function signature.
+
+    Returns ``(name, types, values)``. Raises ``ValueError`` if the calldata's
+    4-byte selector doesn't match the signature — a mismatched signature would
+    otherwise produce a silent garbage decode.
+    """
+    name, types = parse_display_signature(signature)
+    data = hex_to_bytes(calldata) if isinstance(calldata, str) else calldata
+    if len(data) < 4:
+        raise ValueError(f"calldata too short ({len(data)} bytes), need at least 4 for selector")
+
+    expected = compute_selector(name, types)
+    if data[:4] != expected:
+        raise ValueError(
+            f"selector mismatch: calldata starts with 0x{data[:4].hex()}, but "
+            f"{name}({','.join(types)}) has selector 0x{expected.hex()}"
+        )
+    values = decode_calldata(types, data[4:])
+    return name, types, values
 
 
 def hex_to_bytes(hex_str: str) -> bytes:
