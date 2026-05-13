@@ -44,7 +44,7 @@ class Registry:
     def from_path(cls, path: str | Path) -> "Registry":
         """Load all calldata descriptors from a registry directory."""
         registry = cls()
-        root = Path(path)
+        root = Path(path).resolve()
 
         registry_dir = root / "registry"
         if registry_dir.exists():
@@ -53,17 +53,17 @@ class Registry:
                     continue
                 for f in sorted(entity_dir.iterdir()):
                     if f.suffix == ".json" and f.name.startswith("calldata-"):
-                        registry._load_descriptor(f, entity_dir.name)
+                        registry._load_descriptor(f, entity_dir.name, root)
 
         ercs_dir = root / "ercs"
         if ercs_dir.exists():
             for f in sorted(ercs_dir.iterdir()):
                 if f.suffix == ".json" and f.name.startswith("calldata-"):
-                    registry._load_descriptor(f, None)
+                    registry._load_descriptor(f, None, root)
 
         return registry
 
-    def _load_descriptor(self, path: Path, entity: str | None) -> None:
+    def _load_descriptor(self, path: Path, entity: str | None, root: Path) -> None:
         with open(path) as f:
             descriptor = json.load(f)
 
@@ -73,10 +73,21 @@ class Registry:
         metadata = descriptor.get("metadata", {})
         formats = display.get("formats", {})
 
-        # Handle includes by loading the common file
         includes = descriptor.get("includes")
         if includes:
-            includes_path = path.parent / includes
+            # `includes` is a relative path string from a community-curated
+            # registry. Resolve it and reject anything that escapes the
+            # registry root so a malicious descriptor can't read arbitrary
+            # JSON files from the host (e.g. via "../../../etc/...").
+            if not isinstance(includes, str) or "\x00" in includes:
+                raise ValueError(f"{path}: 'includes' must be a string path, got {includes!r}")
+            includes_path = (path.parent / includes).resolve()
+            try:
+                includes_path.relative_to(root)
+            except ValueError as e:
+                raise ValueError(
+                    f"{path}: 'includes' escapes the registry root: {includes!r}"
+                ) from e
             if includes_path.exists():
                 with open(includes_path) as f:
                     common = json.load(f)

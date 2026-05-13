@@ -2,6 +2,8 @@ import json
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from clearsig._abi import compute_selector
 from clearsig._registry import Registry
 
@@ -216,3 +218,93 @@ class TestRegistryWithUrlAbi:
             assert func.name == "doSomething"
             assert func.input_names == ["target", "amount"]
             assert func.input_types == ["address", "uint256"]
+
+
+class TestRegistryIncludesPathTraversal:
+    @pytest.mark.parametrize(
+        "bad_includes",
+        [
+            "../../../etc/passwd.json",
+            "/etc/passwd.json",
+            "../../../../tmp/anywhere.json",
+        ],
+    )
+    def test_rejects_paths_outside_root(self, bad_includes):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            entity_dir = root / "registry" / "evil"
+            entity_dir.mkdir(parents=True)
+            descriptor = {
+                "includes": bad_includes,
+                "context": {"contract": {"deployments": [{"chainId": 1, "address": "0xABCD"}]}},
+            }
+            (entity_dir / "calldata-Evil.json").write_text(json.dumps(descriptor))
+            with pytest.raises(ValueError, match="includes"):
+                Registry.from_path(root)
+
+    def test_rejects_null_byte(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            entity_dir = root / "registry" / "evil"
+            entity_dir.mkdir(parents=True)
+            descriptor = {
+                "includes": "common\x00.json",
+                "context": {"contract": {"deployments": [{"chainId": 1, "address": "0xABCD"}]}},
+            }
+            (entity_dir / "calldata-Evil.json").write_text(json.dumps(descriptor))
+            with pytest.raises(ValueError, match="includes"):
+                Registry.from_path(root)
+
+    def test_allows_sibling_directory_within_root(self):
+        # Real registries (e.g. morpho descriptors) include a generic ERC
+        # descriptor from a sibling `ercs/` directory via `../../ercs/foo.json`.
+        # That must stay legal — it's the legitimate use case for `includes`.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            ercs_dir = root / "ercs"
+            entity_dir = root / "registry" / "morpho"
+            ercs_dir.mkdir(parents=True)
+            entity_dir.mkdir(parents=True)
+            (ercs_dir / "calldata-erc4626.json").write_text(
+                json.dumps(
+                    {
+                        "metadata": {"owner": "ERC-4626"},
+                        "display": {
+                            "formats": {
+                                "deposit(uint256,address)": {
+                                    "fields": [
+                                        {"path": "assets", "label": "Assets", "format": "raw"}
+                                    ]
+                                }
+                            }
+                        },
+                    }
+                )
+            )
+            (entity_dir / "calldata-Morpho.json").write_text(
+                json.dumps(
+                    {
+                        "includes": "../../ercs/calldata-erc4626.json",
+                        "context": {
+                            "contract": {
+                                "deployments": [{"chainId": 1, "address": "0xABCD"}],
+                                "abi": [
+                                    {
+                                        "type": "function",
+                                        "name": "deposit",
+                                        "inputs": [
+                                            {"name": "assets", "type": "uint256"},
+                                            {"name": "receiver", "type": "address"},
+                                        ],
+                                    }
+                                ],
+                            }
+                        },
+                    }
+                )
+            )
+            registry = Registry.from_path(root)
+            sel = compute_selector("deposit", ["uint256", "address"])
+            func = registry.lookup(sel, 1, "0xabcd")
+            assert func is not None
+            assert func.entity == "ERC-4626"

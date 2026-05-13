@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 DEFAULT_BASE_URL = "https://sourcify.dev/server"
 DEFAULT_TIMEOUT_SECONDS = 15
 MAX_PROXY_DEPTH = 3
+MAX_RESPONSE_BYTES = 16 * 1024 * 1024  # 16 MiB — large contracts have big ABIs; bounds memory.
 
 
 def fetch_abi(
@@ -112,7 +113,9 @@ def _fetch_one(chain_id: int, address: str, base_url: str) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": "clearsig/0.1"})
     try:
         with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT_SECONDS) as resp:
-            payload = resp.read()
+            payload = resp.read(MAX_RESPONSE_BYTES + 1)
+            if len(payload) > MAX_RESPONSE_BYTES:
+                raise ValueError(f"Sourcify response exceeded {MAX_RESPONSE_BYTES} bytes")
     except urllib.error.HTTPError as e:
         if e.code == 404:
             raise ValueError(

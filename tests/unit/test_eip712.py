@@ -249,3 +249,20 @@ class TestErrors:
         }
         with pytest.raises(TypeError):
             hash_typed_data(doc)
+
+
+class TestAtomicTypeShadowing:
+    @pytest.mark.parametrize("name", ["string", "address", "bool", "bytes", "bytes32", "uint256"])
+    def test_rejects_shadowing(self, name):
+        doc = {
+            "types": {
+                "EIP712Domain": [{"name": "name", "type": "string"}],
+                name: [{"name": "x", "type": "uint256"}],
+                "Wrap": [{"name": "inner", "type": name}],
+            },
+            "primaryType": "Wrap",
+            "domain": {"name": "Shadow"},
+            "message": {"inner": {"x": 0}},
+        }
+        with pytest.raises(ValueError, match="atomic type"):
+            hash_typed_data(doc)

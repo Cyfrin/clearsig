@@ -21,6 +21,24 @@ def _make_urlopen(payload: dict) -> object:
     return fake_urlopen
 
 
+class _ReadLimitedResp:
+    """A urlopen-like response that records what max_bytes was passed to read()."""
+
+    def __init__(self, body: bytes) -> None:
+        self.body = body
+        self.read_limit: int | None = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+    def read(self, n: int | None = None) -> bytes:
+        self.read_limit = n
+        return self.body if n is None else self.body[:n]
+
+
 APPROVE_RESPONSE = {
     "count": 4,
     "next": None,
@@ -68,3 +86,27 @@ class TestLookupSelector:
     def test_rejects_wrong_length(self):
         with pytest.raises(ValueError, match="4 hex bytes"):
             lookup_selector("0x095ea7")
+
+    def test_filters_malicious_signatures(self):
+        # A response that mixes legal signatures with ones containing ANSI
+        # escapes or Unicode lookalikes — only the legal ones should come back.
+        payload = {
+            "results": [
+                {"id": 1, "text_signature": "approve(address,uint256)"},
+                {"id": 2, "text_signature": "approve(address,uint256)\x1b[2A"},
+                {"id": 3, "text_signature": "аpprove(address,uint256)"},  # Cyrillic а
+                {"id": 4, "text_signature": "transfer(address,uint256)"},
+            ]
+        }
+        with patch("urllib.request.urlopen", _make_urlopen(payload)):
+            sigs = lookup_selector("0x095ea7b3")
+        assert sigs == ["approve(address,uint256)", "transfer(address,uint256)"]
+
+    def test_caps_response_size(self):
+        from clearsig._fourbyte import MAX_RESPONSE_BYTES
+
+        body = json.dumps({"results": []}).encode()
+        resp = _ReadLimitedResp(body)
+        with patch("urllib.request.urlopen", return_value=resp):
+            lookup_selector("0x095ea7b3")
+        assert resp.read_limit == MAX_RESPONSE_BYTES + 1

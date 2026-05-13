@@ -133,6 +133,21 @@ class TestVersionLt:
     def test_compare(self, version: str, target: tuple[int, ...], expected: bool) -> None:
         assert _version_lt(version, target) is expected
 
+    @pytest.mark.parametrize(
+        "version,expected",
+        [
+            ("1.4.1-rc1", False),  # post-1.3.0 even with suffix
+            ("1.2.9+build", True),  # pre-1.3.0 even with suffix
+            ("1.4.1.beta", False),  # extra segment ignored
+        ],
+    )
+    def test_handles_version_suffixes(self, version: str, expected: bool) -> None:
+        assert _version_lt(version, (1, 3, 0)) is expected
+
+    def test_rejects_unparseable_version(self) -> None:
+        with pytest.raises(ValueError, match="unrecognized"):
+            _version_lt("not-a-version", (1, 3, 0))
+
 
 class TestDefaults:
     def test_defaults_match_what_safe_ui_uses(self) -> None:

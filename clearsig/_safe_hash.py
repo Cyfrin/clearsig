@@ -256,6 +256,19 @@ def safe_typed_data(
 
 
 def _version_lt(version: str, target: tuple[int, ...]) -> bool:
-    parts = tuple(int(p) for p in version.split(".")[: len(target)])
-    parts = parts + (0,) * (len(target) - len(parts))
+    raw = version.split(".")[: len(target)]
+    # Accept suffixes like "1.4.1-rc1" or "1.4.1+build" by extracting the
+    # leading digits from each segment.
+    parsed = []
+    for segment in raw:
+        digits = ""
+        for ch in segment:
+            if ch.isdigit():
+                digits += ch
+            else:
+                break
+        if not digits:
+            raise ValueError(f"unrecognized Safe version: {version!r}")
+        parsed.append(int(digits))
+    parts = tuple(parsed) + (0,) * (len(target) - len(parsed))
     return parts < target

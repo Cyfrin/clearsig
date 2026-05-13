@@ -272,3 +272,11 @@ class TestHexToBytes:
     def test_uppercase_prefix(self):
         result = hex_to_bytes("0XABCD")
         assert result == b"\xab\xcd"
+
+    def test_rejects_odd_length(self):
+        with pytest.raises(ValueError, match="even number"):
+            hex_to_bytes("0xabc")
+
+    def test_rejects_odd_length_no_prefix(self):
+        with pytest.raises(ValueError, match="even number"):
+            hex_to_bytes("abc")

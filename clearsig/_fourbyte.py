@@ -7,8 +7,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from clearsig._validate import is_valid_solidity_signature
+
 DEFAULT_BASE_URL = "https://www.4byte.directory"
 DEFAULT_TIMEOUT_SECONDS = 15
+MAX_RESPONSE_BYTES = 4 * 1024 * 1024  # 4 MiB — plenty for selector collisions, bounds memory.
 
 
 def lookup_selector(
@@ -44,7 +47,7 @@ def lookup_selector(
     req = urllib.request.Request(url, headers={"User-Agent": "clearsig"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            payload = json.loads(resp.read())
+            payload = json.loads(resp.read(MAX_RESPONSE_BYTES + 1))
     except urllib.error.HTTPError as e:
         raise ValueError(f"4byte.directory request failed ({e.code}): {url}") from e
     except urllib.error.URLError as e:
@@ -54,4 +57,8 @@ def lookup_selector(
 
     results = payload.get("results") or []
     results.sort(key=lambda r: r.get("id", 0))
-    return [r["text_signature"] for r in results if r.get("text_signature")]
+    return [
+        r["text_signature"]
+        for r in results
+        if r.get("text_signature") and is_valid_solidity_signature(r["text_signature"])
+    ]
