@@ -23,7 +23,6 @@ classifiers = [
 ]
 dependencies = [
     "eth-abi>=5.0.0",
-    "eth-utils>=5.0.0",
     "eth-hash[pycryptodome]>=0.7.0",
     "rfc8785>=0.1.4",
 ]
@@ -43,6 +42,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["clearsig"]
 
+[tool.uv]
+# Reject packages published within the last 14 days. Defends against
+# compromised-release attacks (e.g. elementary-data Apr 2026) by giving the
+# community time to detect and yank a malicious upload before we pull it in.
+exclude-newer = "14 days"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
@@ -59,5 +64,5 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TC"]
 dev = [
     "pytest>=9.0.2",
     "ruff>=0.15.12",
-    "ty>=0.0.35",
+    "ty>=0.0.33",
 ]

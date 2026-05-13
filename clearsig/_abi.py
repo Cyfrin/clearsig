@@ -184,10 +184,13 @@ def decode_calldata_with_signature(
 def hex_to_bytes(hex_str: str) -> bytes:
     """Convert a hex string (with or without 0x prefix) to bytes.
 
-    Strips all whitespace so calldata pasted with line breaks works.
-    Pads odd-length hex strings with a trailing zero.
+    Strips all whitespace so calldata pasted with line breaks works. Odd-length
+    hex is rejected — silently padding it would let truncated calldata decode
+    to bytes the user didn't intend to sign.
     """
     clean = "".join(hex_str.split()).removeprefix("0x").removeprefix("0X")
     if len(clean) % 2 != 0:
-        clean += "0"
+        raise ValueError(
+            f"hex must have an even number of characters, got {len(clean)}: {hex_str!r}"
+        )
     return bytes.fromhex(clean)

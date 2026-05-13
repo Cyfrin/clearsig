@@ -19,10 +19,16 @@ Spec: https://eips.ethereum.org/EIPS/eip-712
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from eth_abi import encode as abi_encode
 from eth_hash.auto import keccak
+
+# Atomic type names reserved by the EIP-712 spec — a struct definition can't
+# shadow them, or the encoded data would silently disagree with verifiers that
+# follow the spec.
+_ATOMIC_TYPE_RE = re.compile(r"^(?:address|bool|string|bytes\d*|u?int\d*)$")
 
 
 def hash_typed_data(typed_data: dict) -> bytes:
@@ -42,18 +48,30 @@ def hash_typed_data(typed_data: dict) -> bytes:
         }
     """
     types: dict = typed_data["types"]
+    _reject_atomic_shadowing(types)
     domain_hash = hash_struct("EIP712Domain", types, typed_data["domain"])
     message_hash = hash_struct(typed_data["primaryType"], types, typed_data["message"])
     return keccak(b"\x19\x01" + domain_hash + message_hash)
 
 
+def _reject_atomic_shadowing(types: dict) -> None:
+    for name in types:
+        if _ATOMIC_TYPE_RE.match(name):
+            raise ValueError(
+                f"EIP-712 type {name!r} shadows an atomic type; "
+                f"struct names must be distinct from atomic types per the spec"
+            )
+
+
 def hash_domain(typed_data: dict) -> bytes:
     """Compute hashStruct(EIP712Domain) for the document's domain."""
+    _reject_atomic_shadowing(typed_data["types"])
     return hash_struct("EIP712Domain", typed_data["types"], typed_data["domain"])
 
 
 def hash_message(typed_data: dict) -> bytes:
     """Compute hashStruct(primaryType) for the document's message."""
+    _reject_atomic_shadowing(typed_data["types"])
     return hash_struct(typed_data["primaryType"], typed_data["types"], typed_data["message"])
 
 

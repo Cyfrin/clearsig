@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from clearsig import Registry, descriptor_hash_hex, translate_with_registry, update_registry
+from clearsig._validate import sanitize_for_terminal
 
 
 def app() -> None:
@@ -266,7 +267,13 @@ def app() -> None:
 
 
 def _handle_translate(args: argparse.Namespace) -> None:
+    from clearsig._validate import validate_address, validate_hex
+
     try:
+        validate_address(args.to, field="--to")
+        validate_hex(args.calldata, field="calldata")
+        if args.from_address is not None:
+            validate_address(args.from_address, field="--from-address")
         registry = Registry.from_path(args.registry_path) if args.registry_path else Registry.load()
         result = translate_with_registry(
             registry,
@@ -296,12 +303,16 @@ def _handle_translate(args: argparse.Namespace) -> None:
 
 
 def _print_human(result) -> None:
-    entity_str = f" ({result.entity})" if result.entity else ""
-    print(f"Intent: {result.intent}{entity_str}")
-    print(f"Function: {result.function_signature}")
+    # Descriptor strings flow from a community-curated registry to the user's
+    # terminal — strip control chars so a malicious descriptor can't rewrite
+    # the displayed transaction with ANSI escapes.
+    s = sanitize_for_terminal
+    entity_str = f" ({s(result.entity)})" if result.entity else ""
+    print(f"Intent: {s(result.intent)}{entity_str}")
+    print(f"Function: {s(result.function_signature)}")
     print()
     for field in result.fields:
-        print(f"  {field.label}: {field.value}")
+        print(f"  {s(field.label)}: {s(field.value)}")
 
 
 def _handle_update() -> None:
@@ -383,8 +394,11 @@ def _handle_fourbyte(args: argparse.Namespace) -> None:
     if not signatures:
         print(f"No signatures found for {args.selector}", file=sys.stderr)
         sys.exit(1)
+    # _fourbyte already filtered to legal Solidity signatures; sanitize again
+    # at the print boundary so a future change to that filter can't regress
+    # terminal safety.
     for sig in signatures:
-        print(sig)
+        print(sanitize_for_terminal(sig))
 
 
 def _handle_sig(args: argparse.Namespace) -> None:
