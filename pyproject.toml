@@ -50,9 +50,7 @@ exclude-newer = "14 days"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-    "integration: tests that make external API calls",
-]
+markers = ["integration: tests that make external API calls"]
 
 [tool.ruff]
 line-length = 100
@@ -61,8 +59,4 @@ line-length = 100
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TC"]
 
 [dependency-groups]
-dev = [
-    "pytest>=9.0.2",
-    "ruff>=0.15.12",
-    "ty>=0.0.33",
-]
+dev = ["pytest>=9.0.2", "ruff>=0.15.12", "ty>=0.0.33"]

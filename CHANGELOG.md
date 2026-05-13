@@ -7,6 +7,41 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Security
+
+- Descriptor `includes` paths are now resolved against the registry root and
+  rejected if they escape it. A malicious descriptor can no longer load JSON
+  from arbitrary host paths (e.g. via `../../../etc/something.json`).
+- `hex_to_bytes` rejects odd-length input instead of silently padding with a
+  trailing zero. Truncated calldata now errors at the input boundary rather
+  than producing different bytes than the user intended to sign.
+- `4byte` filters responses through a strict Solidity-signature regex.
+  Signatures with terminal escapes or Unicode lookalikes (e.g. Cyrillic `а`)
+  are dropped before display.
+- Terminal output for `translate` and `4byte` escapes C0/C1 control
+  characters, so a malicious descriptor label or 4byte entry can't rewrite
+  earlier terminal output with ANSI sequences.
+- `translate` validates `--to`, `calldata`, and `--from-address` at the CLI
+  boundary (was validated only inside `safe-hash`).
+- Sourcify and 4byte clients cap response size (16 MiB and 4 MiB
+  respectively).
+- EIP-712 hashing rejects struct names that shadow atomic types (`address`,
+  `string`, `bytes32`, `uint256`, …). Such documents previously produced a
+  hash that disagreed with spec-conforming verifiers.
+
+### Changed
+
+- `_version_lt` (used by `safe-hash`) accepts suffixed Safe versions like
+  `1.4.1-rc1` or `1.2.9+build`; emits a clear error on unparseable input.
+- `pyproject.toml` adds `[tool.uv] exclude-newer = "14 days"`, a rolling
+  cooldown that refuses to install any package published in the last 14
+  days. Defends against compromised-release attacks by giving the community
+  time to detect and yank a malicious upload.
+- Dropped `eth-utils` from direct dependencies — it was never imported
+  directly; comes along as a transitive of `eth-abi`.
+- Dev dependency `ty>=0.0.35` lowered to `ty>=0.0.33` to fit inside the
+  14-day cooldown window.
+
 ## [0.3.0] - 2026-05-12
 
 ### Added
