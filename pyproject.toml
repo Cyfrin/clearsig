@@ -1,6 +1,6 @@
 [project]
 name = "clearsig"
-version = "0.3.0"
+version = "0.3.1"
 description = "Convert EVM calldata to human-readable output using ERC-7730 descriptors"
 readme = "README.md"
 requires-python = ">=3.13"
