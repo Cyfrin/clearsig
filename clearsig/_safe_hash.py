@@ -27,6 +27,30 @@ from clearsig._eip712 import hash_domain, hash_message, hash_typed_data
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 APPROVE_HASH_SELECTOR = b"\xd4\xd9\xbd\xcd"  # keccak256("approveHash(bytes32)")[:4]
 
+# Official MultiSend deployments from safe-global/safe-deployments, keyed by
+# lowercased address. These are the only expected DELEGATECALL targets for a
+# Safe transaction; anything else deserves the strongest possible warning.
+KNOWN_MULTISEND_ADDRESSES: dict[str, str] = {
+    "0x8d29be29923b68abfdd21e541b9374737b49cdad": "MultiSend 1.1.1 (canonical)",
+    "0xa238cbeb142c10ef7ad8442c6d1f9e89e07e7761": "MultiSend 1.3.0 (canonical)",
+    "0x998739bfdaadde7c933b942a68053933098f9eda": "MultiSend 1.3.0 (eip155)",
+    "0x0dfcccb95225ffb03c6fbb2559b530c2b7c8a912": "MultiSend 1.3.0 (zksync)",
+    "0x38869bf66a61cf6bdb996a6ae40d5853fd43b526": "MultiSend 1.4.1 (canonical)",
+    "0x309d0b190fecca8e1d5d8309a16f7e3cb133e885": "MultiSend 1.4.1 (zksync)",
+    "0x218543288004cd07832472d464648173c77d7eb7": "MultiSend 1.5.0 (canonical)",
+    "0x40a2accbd92bca938b02010e17a5b8929b49130d": "MultiSendCallOnly 1.3.0 (canonical)",
+    "0xa1dabef33b3b82c7814b6d82a79e50f4ac44102b": "MultiSendCallOnly 1.3.0 (eip155)",
+    "0xf220d3b4dfb23c4ade8c88e526c1353abacbc38f": "MultiSendCallOnly 1.3.0 (zksync)",
+    "0x9641d764fc13c8b624c04430c7356c1c7c8102e2": "MultiSendCallOnly 1.4.1 (canonical)",
+    "0x0408ef011960d02349d50286d20531229bcef773": "MultiSendCallOnly 1.4.1 (zksync)",
+    "0xa83c336b20401af773b6219ba5027174338d1836": "MultiSendCallOnly 1.5.0 (canonical)",
+}
+
+
+def known_multisend(address: str) -> str | None:
+    """Name the official Safe MultiSend deployment at `address`, if any."""
+    return KNOWN_MULTISEND_ADDRESSES.get(address.lower())
+
 
 @dataclass(frozen=True)
 class SafeTx:

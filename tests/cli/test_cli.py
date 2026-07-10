@@ -665,3 +665,55 @@ class TestSafeHashVersionWarning:
             "1.4.1",
         )
         assert "--safe-version" not in result.stderr
+
+
+MULTISEND_CALL_ONLY = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2"
+
+
+def _safe_hash_args(to: str, operation: int) -> list[str]:
+    return [
+        "safe-hash",
+        "--chain-id",
+        "1",
+        "--safe-address",
+        "0x1c694Fc3006D81ff4a56F97E1b99529066a23725",
+        "--safe-version",
+        "1.4.1",
+        "--to",
+        to,
+        "--data",
+        "0x8d80ff0a",
+        "--operation",
+        str(operation),
+        "--nonce",
+        "63",
+    ]
+
+
+class TestSafeHashDelegatecallWarning:
+    """operation=1 must never print hashes without flagging the delegatecall."""
+
+    def test_known_multisend_target_warns_with_name(self):
+        result = _run_cli(*_safe_hash_args(MULTISEND_CALL_ONLY, 1))
+        assert "DELEGATECALL" in result.stderr
+        assert "MultiSendCallOnly 1.4.1" in result.stderr
+        assert "NOT a known" not in result.stderr
+
+    def test_known_multisend_lookup_is_case_insensitive(self):
+        result = _run_cli(*_safe_hash_args(MULTISEND_CALL_ONLY.lower(), 1))
+        assert "MultiSendCallOnly 1.4.1" in result.stderr
+
+    def test_unknown_target_gets_strongest_warning(self):
+        result = _run_cli(*_safe_hash_args(USER, 1))
+        assert "DELEGATECALL" in result.stderr
+        assert "NOT a known Safe MultiSend deployment" in result.stderr
+
+    def test_operation_zero_does_not_warn(self):
+        result = _run_cli(*_safe_hash_args(MULTISEND_CALL_ONLY, 0))
+        assert "DELEGATECALL" not in result.stderr
+
+    def test_warning_stays_off_stdout_in_json_mode(self):
+        with_warning = _run_cli(*_safe_hash_args(USER, 1), "--json")
+        payload = json.loads(with_warning.stdout)
+        assert set(payload) == {"domainHash", "messageHash", "safeTxHash"}
+        assert "DELEGATECALL" in with_warning.stderr

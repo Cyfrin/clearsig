@@ -493,6 +493,37 @@ def _resolve_safe_version(version: str | None) -> str:
     return DEFAULT_SAFE_VERSION
 
 
+def _warn_delegatecall(to: str) -> None:
+    """Flag operation=1 the way safe_hashes.sh does.
+
+    A DELEGATECALL runs the target's code with the Safe's own storage,
+    balance, and identity — an unflagged one is the highest-risk action a
+    signer can approve. Official MultiSend batching contracts are the one
+    expected target; anything else is treated as hostile until proven
+    otherwise. stderr only, so hash output and --json stay byte-identical.
+    """
+    from clearsig._safe_hash import known_multisend
+
+    print(
+        "warning: operation=1 (DELEGATECALL) — the target's code runs in the Safe's own context.",
+        file=sys.stderr,
+    )
+    name = known_multisend(to)
+    if name is not None:
+        print(
+            f"warning: the target is the official Safe {name} batching contract. "
+            "Verify the decoded inner calls before signing.",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"WARNING: the target {to} is NOT a known Safe MultiSend deployment. "
+            "A malicious DELEGATECALL target can take over the Safe. Do not sign "
+            "unless you can prove what code runs at this address.",
+            file=sys.stderr,
+        )
+
+
 def _handle_safe_hash(args: argparse.Namespace) -> None:
     from clearsig._safe_hash import SafeTx, nested_safe_hashes, safe_hashes
     from clearsig._validate import validate_address, validate_hex
@@ -548,6 +579,9 @@ def _handle_safe_hash(args: argparse.Namespace) -> None:
     except (ValueError, TypeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if args.operation == 1:
+        _warn_delegatecall(args.to)
 
     if nested:
         _print_nested_safe_hashes(result, args.output_json)
