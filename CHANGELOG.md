@@ -7,6 +7,15 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Security
+
+- `safe-hash` and `safe-msg` warn on stderr when `--safe-version` is not
+  supplied and the 1.4.1 default is assumed. A Safe below 1.3.0 uses a
+  chainId-less EIP-712 domain and one below 1.0.0 a different SafeTx gas
+  field, so a silently assumed version produces a confidently wrong hash.
+  Hash output is unchanged and the warning goes to stderr, so `--json`
+  consumers are unaffected.
+
 ## [0.4.0] - 2026-09-04
 
 ### Fixed

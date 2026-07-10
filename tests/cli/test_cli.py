@@ -600,3 +600,68 @@ class TestKeccak:
         hex_mode = _run_cli("keccak", "0x").stdout.strip()
         str_mode = _run_cli("keccak", "0x", "--string").stdout.strip()
         assert hex_mode != str_mode
+
+
+# ── safe-hash signer warnings ───────────────────────────────────────────────
+
+SAFE_HASH_RS_VECTOR = [
+    "--chain-id",
+    "1",
+    "--safe-address",
+    "0x1c694Fc3006D81ff4a56F97E1b99529066a23725",
+    "--to",
+    USDC,
+    "--data",
+    "0xa9059cbb"
+    "00000000000000000000000092d0ebaf7eb707f0650f9471e61348f4656c29bc"
+    "00000000000000000000000000000000000000000000000000000005d21dba00",
+    "--nonce",
+    "63",
+]
+SAFE_HASH_RS_TX_HASH = "0xad06b099fca34e51e4886643d95d9a19ace2cd024065efb66662a876e8c40343"
+
+
+class TestSafeHashVersionWarning:
+    """`--safe-version` must never be assumed silently."""
+
+    def test_missing_version_warns_and_hash_is_unchanged(self):
+        result = _run_cli("safe-hash", *SAFE_HASH_RS_VECTOR)
+        assert "warning: --safe-version not supplied; assuming 1.4.1" in result.stderr
+        assert SAFE_HASH_RS_TX_HASH in result.stdout
+
+    def test_explicit_version_does_not_warn(self):
+        result = _run_cli("safe-hash", *SAFE_HASH_RS_VECTOR, "--safe-version", "1.4.1")
+        assert "--safe-version" not in result.stderr
+        assert SAFE_HASH_RS_TX_HASH in result.stdout
+
+    def test_warning_stays_off_stdout_in_json_mode(self):
+        result = _run_cli("safe-hash", *SAFE_HASH_RS_VECTOR, "--json")
+        payload = json.loads(result.stdout)
+        assert payload["safeTxHash"] == SAFE_HASH_RS_TX_HASH
+        assert "warning: --safe-version not supplied" in result.stderr
+
+    def test_safe_msg_missing_version_warns(self):
+        result = _run_cli(
+            "safe-msg",
+            "--chain-id",
+            "1",
+            "--safe-address",
+            SAFE_1_4_1,
+            "--message",
+            "hello",
+        )
+        assert "warning: --safe-version not supplied; assuming 1.4.1" in result.stderr
+
+    def test_safe_msg_explicit_version_does_not_warn(self):
+        result = _run_cli(
+            "safe-msg",
+            "--chain-id",
+            "1",
+            "--safe-address",
+            SAFE_1_4_1,
+            "--message",
+            "hello",
+            "--safe-version",
+            "1.4.1",
+        )
+        assert "--safe-version" not in result.stderr

@@ -163,7 +163,7 @@ def app() -> None:
     safe_hash_parser.add_argument("--chain-id", type=int, required=True, help="EIP-155 chain ID")
     safe_hash_parser.add_argument("--safe-address", required=True, help="Safe contract address")
     safe_hash_parser.add_argument(
-        "--safe-version", default="1.4.1", help="Safe contract version (default: 1.4.1)"
+        "--safe-version", help="Safe contract version (default: 1.4.1, with a warning)"
     )
     safe_hash_parser.add_argument("--to", required=True, help="Transaction `to` address")
     safe_hash_parser.add_argument("--value", type=int, default=0, help="Native value (wei)")
@@ -211,7 +211,7 @@ def app() -> None:
     safe_msg_parser.add_argument("--chain-id", type=int, required=True, help="EIP-155 chain ID")
     safe_msg_parser.add_argument("--safe-address", required=True, help="Safe contract address")
     safe_msg_parser.add_argument(
-        "--safe-version", default="1.4.1", help="Safe contract version (default: 1.4.1)"
+        "--safe-version", help="Safe contract version (default: 1.4.1, with a warning)"
     )
     msg_source = safe_msg_parser.add_mutually_exclusive_group(required=True)
     msg_source.add_argument("--message", help="Inline plaintext message")
@@ -472,10 +472,32 @@ def _handle_eip712(args: argparse.Namespace) -> None:
         print(f"Digest:       {digest}")
 
 
+DEFAULT_SAFE_VERSION = "1.4.1"
+
+
+def _resolve_safe_version(version: str | None) -> str:
+    """Fall back to the default Safe version, loudly.
+
+    A Safe below 1.3.0 uses a chainId-less EIP-712 domain and one below 1.0.0
+    a different SafeTx gas field, so hashing under an assumed version yields a
+    confidently wrong hash. The assumption must be visible to the signer.
+    """
+    if version is not None:
+        return version
+    print(
+        f"warning: --safe-version not supplied; assuming {DEFAULT_SAFE_VERSION}. "
+        "Hashes for other Safe versions differ "
+        "(the EIP-712 domain changed in 1.3.0, the SafeTx gas field in 1.0.0).",
+        file=sys.stderr,
+    )
+    return DEFAULT_SAFE_VERSION
+
+
 def _handle_safe_hash(args: argparse.Namespace) -> None:
     from clearsig._safe_hash import SafeTx, nested_safe_hashes, safe_hashes
     from clearsig._validate import validate_address, validate_hex
 
+    safe_version = _resolve_safe_version(args.safe_version)
     nested = args.nested_safe_address is not None or args.nested_safe_nonce is not None
     if nested and (args.nested_safe_address is None or args.nested_safe_nonce is None):
         print(
@@ -506,11 +528,11 @@ def _handle_safe_hash(args: argparse.Namespace) -> None:
             nonce=args.nonce,
         )
         if nested:
-            outer_version = args.nested_safe_version or args.safe_version
+            outer_version = args.nested_safe_version or safe_version
             result = nested_safe_hashes(
                 chain_id=args.chain_id,
                 inner_safe_address=args.safe_address,
-                inner_safe_version=args.safe_version,
+                inner_safe_version=safe_version,
                 inner_tx=tx,
                 outer_safe_address=args.nested_safe_address,
                 outer_safe_version=outer_version,
@@ -520,7 +542,7 @@ def _handle_safe_hash(args: argparse.Namespace) -> None:
             result = safe_hashes(
                 chain_id=args.chain_id,
                 safe_address=args.safe_address,
-                safe_version=args.safe_version,
+                safe_version=safe_version,
                 tx=tx,
             )
     except (ValueError, TypeError) as e:
@@ -588,13 +610,14 @@ def _handle_safe_msg(args: argparse.Namespace) -> None:
     from clearsig._safe_hash import safe_message_hashes
     from clearsig._validate import validate_address
 
+    safe_version = _resolve_safe_version(args.safe_version)
     try:
         validate_address(args.safe_address, field="--safe-address")
         message: str = args.message if args.message is not None else args.message_file.read_text()
         h = safe_message_hashes(
             chain_id=args.chain_id,
             safe_address=args.safe_address,
-            safe_version=args.safe_version,
+            safe_version=safe_version,
             message=message,
         )
     except (OSError, ValueError, TypeError) as e:
