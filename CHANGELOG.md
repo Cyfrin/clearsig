@@ -7,6 +7,28 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- `descriptor-hash` / `dh` now resolves `includes` references (recursively,
+  per the ERC-7730 merge rules, dropping the `includes` key) before
+  canonicalizing and hashing, as ERC-8176 requires. Previously the file was
+  hashed as written, so for any descriptor using `includes` the reported
+  hash did not cover the included content (e.g. the shared `display` block)
+  and did not match what a spec-correct verifier recomputes
+  ([#16](https://github.com/Cyfrin/clearsig/issues/16)). **Breaking:** the
+  output changes for every descriptor that uses `includes`; attestations
+  signed over the old value must be re-issued.
+
+### Added
+
+- `descriptor-hash --raw` to reproduce the previous hash-the-file-as-written
+  behavior (for comparing against legacy recorded values).
+- `clearsig.resolve_includes(descriptor, base_dir)` — the ERC-7730 includes
+  resolver, exported for reuse.
+- Regression vectors from real registry files: 1inch AggregationRouterV4
+  (resolved + raw hashes) and the nested Kiln → KilnVaults → ERC-4626
+  include chain.
+
 ## [0.3.1] - 2026-05-13
 
 ### Security

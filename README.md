@@ -120,7 +120,9 @@ clearsig descriptor-hash ~/.clearsig/registry/ercs/calldata-erc20-tokens.json
 # 0x63c35f8e63515f177d0f120954ce13e1979ab0b12659d29cd6069d07f2710abb
 ```
 
-Output is the keccak256 of the RFC 8785 JCS-canonicalized JSON — stable across formatting, key order, and trailing whitespace. Auditors sign this hash to attest that a descriptor faithfully represents a contract.
+Per ERC-8176, `includes` references are resolved first (recursively, ERC-7730 merge rules, `includes` key dropped), then the result is the keccak256 of the RFC 8785 JCS-canonicalized JSON — stable across formatting, key order, and trailing whitespace, and covering the descriptor's full effective content including shared files. Auditors sign this hash to attest that a descriptor faithfully represents a contract.
+
+Pass `--raw` to hash the file as written without resolving `includes` (the pre-ERC-8176-final behavior — useful only for comparing against legacy recorded hashes).
 
 ### `calldata` / `cd` — ABI-encode a function call
 

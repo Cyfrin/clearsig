@@ -37,12 +37,20 @@ def app() -> None:
     descriptor_hash_parser = subparsers.add_parser(
         "descriptor-hash",
         aliases=["dh"],
-        help="Compute the ERC-8176 descriptor hash (keccak256 of RFC 8785 JCS-canonicalized JSON)",
+        help="Compute the ERC-8176 descriptor hash (resolve 'includes', then "
+        "keccak256 of RFC 8785 JCS-canonicalized JSON)",
     )
     descriptor_hash_parser.add_argument(
         "file",
         type=Path,
         help="Path to the ERC-7730 descriptor JSON file",
+    )
+    descriptor_hash_parser.add_argument(
+        "--raw",
+        action="store_true",
+        help="Hash the file as written, without resolving 'includes' "
+        "(pre-ERC-8176-final behavior; not spec-compliant for descriptors "
+        "that use 'includes')",
     )
 
     # calldata subcommand
@@ -322,8 +330,8 @@ def _handle_update() -> None:
 
 def _handle_descriptor_hash(args: argparse.Namespace) -> None:
     try:
-        print(descriptor_hash_hex(args.file))
-    except (OSError, json.JSONDecodeError, TypeError) as e:
+        print(descriptor_hash_hex(args.file, resolve_includes=not args.raw))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
