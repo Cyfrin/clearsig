@@ -7,6 +7,56 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- `descriptor-hash` / `dh` now resolves `includes` references (recursively,
+  per the ERC-7730 merge rules, dropping the `includes` key) before
+  canonicalizing and hashing, as ERC-8176 requires. Previously the file was
+  hashed as written, so for any descriptor using `includes` the reported
+  hash did not cover the included content (e.g. the shared `display` block)
+  and did not match what a spec-correct verifier recomputes
+  ([#16](https://github.com/Cyfrin/clearsig/issues/16)). **Breaking:** the
+  output changes for every descriptor that uses `includes`; attestations
+  signed over the old value must be re-issued.
+
+### Security
+
+- Resolved `includes` paths are confined to a trusted root directory (by
+  default the registry checkout root inferred from the descriptor's
+  location, else the descriptor's own directory; override with
+  `descriptor-hash --root` / `include_root=`). `../` traversal, absolute
+  paths, and symlinks that escape the root are rejected, matching the
+  registry-loading guard added in 0.3.1. Root inference is *lexical*
+  (symlinks not followed) and requires the recognized layout (sibling
+  `registry/` and `ercs/` as real, non-symlink directories); the descriptor
+  file itself must also resolve inside the root — checked *before the file
+  is read*, whether or not it uses `includes` — so a symlinked descriptor
+  or protocol directory cannot relocate the trusted root. Legacy raw mode
+  (`--legacy-raw` / `resolve_includes=False`) deliberately reads the given
+  path as-is, with no containment.
+
+### Added
+
+- `descriptor-hash --legacy-raw` to reproduce the previous
+  hash-the-unresolved-file behavior (legacy behavior predating the
+  2026-05-21 ERC-8176 draft change), for comparing against legacy recorded
+  values. Always prints a warning to stderr.
+- `descriptor-hash --root` to widen or pin the trusted include root.
+- `clearsig.resolve_includes(descriptor, base_dir, root=...)` — the
+  ERC-7730 includes resolver, exported for reuse.
+- Validation: `"includes": null` (or any non-string value) is rejected
+  instead of ignored; URI-scheme includes (`https://…`, `https:…`,
+  `file:…`, `urn:…`) are rejected explicitly (clearsig resolves local
+  registry paths only); non-object JSON roots are rejected (ERC-8176
+  defines the hash over a descriptor object); duplicate `fields[].path`
+  values in either `fields` array participating in a merge are rejected
+  (merge behavior for duplicates is undefined by ERC-7730 and would make
+  hashes implementation-dependent; duplicates in arrays that never merge
+  are hashed as written).
+- Regression vectors from real registry files: 1inch AggregationRouterV4
+  (resolved + raw hashes) and the nested Kiln → KilnVaults → ERC-4626
+  include chain.
+
 ## [0.3.1] - 2026-05-13
 
 ### Security

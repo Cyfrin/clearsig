@@ -14,6 +14,7 @@ from clearsig._abi import (
 )
 from clearsig._descriptor_hash import descriptor_hash, descriptor_hash_hex
 from clearsig._formatter import format_fields
+from clearsig._includes import resolve_includes
 from clearsig._models import TranslatedCalldata, TranslatedField
 from clearsig._registry import Registry
 
@@ -26,6 +27,7 @@ __all__ = [
     "descriptor_hash_hex",
     "encode_calldata",
     "encode_calldata_hex",
+    "resolve_includes",
     "translate",
     "translate_with_registry",
     "update_registry",
