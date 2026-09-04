@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-04
+
 ### Fixed
 
 - `descriptor-hash` / `dh` now resolves `includes` references (recursively,
@@ -196,7 +198,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `release-draft`, `check`, etc.), PyPI publish workflow with OIDC Trusted
   Publishing.
 
-[Unreleased]: https://github.com/Cyfrin/clearsig/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/Cyfrin/clearsig/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/Cyfrin/clearsig/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/Cyfrin/clearsig/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/Cyfrin/clearsig/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/Cyfrin/clearsig/compare/0.1.0...0.2.0
