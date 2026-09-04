@@ -37,12 +37,29 @@ def app() -> None:
     descriptor_hash_parser = subparsers.add_parser(
         "descriptor-hash",
         aliases=["dh"],
-        help="Compute the ERC-8176 descriptor hash (keccak256 of RFC 8785 JCS-canonicalized JSON)",
+        help="Compute the ERC-8176 descriptor hash (resolve 'includes', then "
+        "keccak256 of RFC 8785 JCS-canonicalized JSON)",
     )
     descriptor_hash_parser.add_argument(
         "file",
         type=Path,
         help="Path to the ERC-7730 descriptor JSON file",
+    )
+    descriptor_hash_parser.add_argument(
+        "--legacy-raw",
+        action="store_true",
+        help="Hash the parsed file without resolving 'includes' (legacy "
+        "behavior predating the 2026-05-21 ERC-8176 draft change; not "
+        "spec-conformant for descriptors that use 'includes'). Prints a "
+        "warning to stderr.",
+    )
+    descriptor_hash_parser.add_argument(
+        "--root",
+        type=Path,
+        default=None,
+        help="Trusted directory resolved includes must stay inside "
+        "(default: the registry checkout root inferred from the "
+        "descriptor's location, else the descriptor's own directory)",
     )
 
     # calldata subcommand
@@ -322,8 +339,16 @@ def _handle_update() -> None:
 
 def _handle_descriptor_hash(args: argparse.Namespace) -> None:
     try:
-        print(descriptor_hash_hex(args.file))
-    except (OSError, json.JSONDecodeError, TypeError) as e:
+        if args.legacy_raw:
+            print(
+                "warning: --legacy-raw hashes the unresolved file; the result is not "
+                "ERC-8176-conformant for descriptors that use 'includes'",
+                file=sys.stderr,
+            )
+            print(descriptor_hash_hex(args.file, resolve_includes=False))
+        else:
+            print(descriptor_hash_hex(args.file, include_root=args.root))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 

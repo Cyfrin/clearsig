@@ -120,7 +120,11 @@ clearsig descriptor-hash ~/.clearsig/registry/ercs/calldata-erc20-tokens.json
 # 0x63c35f8e63515f177d0f120954ce13e1979ab0b12659d29cd6069d07f2710abb
 ```
 
-Output is the keccak256 of the RFC 8785 JCS-canonicalized JSON — stable across formatting, key order, and trailing whitespace. Auditors sign this hash to attest that a descriptor faithfully represents a contract.
+Per ERC-8176, `includes` references are resolved first (recursively, ERC-7730 merge rules, `includes` key dropped), then the result is the keccak256 of the RFC 8785 JCS-canonicalized JSON — stable across formatting, key order, and trailing whitespace, and covering the descriptor's full effective content including shared files. Auditors sign this hash to attest that a descriptor faithfully represents a contract.
+
+Resolved includes must stay inside a trusted root — by default the registry checkout root inferred from the descriptor's lexical location (symlinks are not followed for inference, and the descriptor itself must resolve inside the root, checked before the file is read, whether or not it uses `includes`) — so a descriptor cannot pull in files from elsewhere on the host (`--root` overrides). ERC-7730 also allows URL includes; clearsig resolves local registry paths only and rejects any URI-scheme include explicitly.
+
+Pass `--legacy-raw` to hash the parsed file without resolving `includes` (legacy behavior predating the 2026-05-21 ERC-8176 draft change — useful only for comparing against legacy recorded hashes; prints a warning to stderr).
 
 ### `calldata` / `cd` — ABI-encode a function call
 

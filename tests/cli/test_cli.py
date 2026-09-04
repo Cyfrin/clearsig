@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from eth_abi import encode
 
+from clearsig import descriptor_hash_hex
 from clearsig._abi import compute_selector
 
 REGISTRY_PATH = Path(__file__).parent.parent.parent / "clear-signing-erc7730-registry"
@@ -445,6 +446,47 @@ class TestHash:
 
     def test_hash_missing_file(self):
         result = _run_cli("descriptor-hash", "/nonexistent/descriptor.json", expect_error=True)
+        assert result.returncode != 0
+        assert "Error" in result.stderr
+
+    def test_hash_resolves_includes_by_default(self, tmp_path: Path):
+        (tmp_path / "common.json").write_text(json.dumps({"metadata": {"owner": "Common"}}))
+        child = tmp_path / "child.json"
+        child.write_text(json.dumps({"includes": "common.json", "context": {"$id": "Child"}}))
+        flat = tmp_path / "flat.json"
+        flat.write_text(json.dumps({"context": {"$id": "Child"}, "metadata": {"owner": "Common"}}))
+
+        resolved = _run_cli("descriptor-hash", str(child)).stdout.strip()
+        raw = _run_cli("descriptor-hash", "--legacy-raw", str(child)).stdout.strip()
+        assert resolved == _run_cli("descriptor-hash", str(flat)).stdout.strip()
+        assert resolved != raw
+
+    def test_hash_legacy_raw_flag_hashes_unresolved_file(self, tmp_path: Path):
+        (tmp_path / "common.json").write_text(json.dumps({"metadata": {"owner": "Common"}}))
+        child = tmp_path / "child.json"
+        content = {"includes": "common.json", "context": {"$id": "Child"}}
+        child.write_text(json.dumps(content))
+
+        result = _run_cli("descriptor-hash", "--legacy-raw", str(child))
+        assert result.stdout.strip() == descriptor_hash_hex(content, resolve_includes=False)
+        assert "warning" in result.stderr  # legacy mode always warns on stderr
+
+    def test_hash_1inch_registry_vector(self):
+        fixture = (
+            Path(__file__).parent.parent
+            / "fixtures"
+            / "includes"
+            / "registry"
+            / "1inch"
+            / "calldata-AggregationRouterV4.json"
+        )
+        result = _run_cli("descriptor-hash", str(fixture)).stdout.strip()
+        assert result == "0x0039d2ccc41196701d4fd730dfa2ffaac85d99ba57e03b8fdd443a63a7d923fc"
+
+    def test_hash_missing_included_file_errors(self, tmp_path: Path):
+        child = tmp_path / "child.json"
+        child.write_text(json.dumps({"includes": "nope.json"}))
+        result = _run_cli("descriptor-hash", str(child), expect_error=True)
         assert result.returncode != 0
         assert "Error" in result.stderr
 
