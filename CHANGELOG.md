@@ -7,6 +7,20 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Security
+
+- `safe-hash` warns on stderr when `--operation 1` (DELEGATECALL) is hashed,
+  matching `safe_hashes.sh` behavior. The target is checked against the
+  official MultiSend deployments from safe-global/safe-deployments: a known
+  batching contract is named, and an unknown delegatecall target gets the
+  strongest warning (it can take over the Safe). Hash output is unchanged.
+- `safe-hash` and `safe-msg` warn on stderr when `--safe-version` is not
+  supplied and the 1.4.1 default is assumed. A Safe below 1.3.0 uses a
+  chainId-less EIP-712 domain and one below 1.0.0 a different SafeTx gas
+  field, so a silently assumed version produces a confidently wrong hash.
+  Hash output is unchanged and the warning goes to stderr, so `--json`
+  consumers are unaffected.
+
 ## [0.4.0] - 2026-09-04
 
 ### Fixed
